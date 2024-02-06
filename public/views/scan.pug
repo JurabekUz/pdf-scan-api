@@ -1,0 +1,36 @@
+doctype html
+head
+    meta(charset='UTF-8')
+    meta(name='viewport' content='width=device-width, initial-scale=1.0')
+    title= `Hujjat: #` + number
+    style
+        include ../views/scan.css
+.container
+    h2 Qr kod ma'lumotlari
+    .container-row
+        p.text-content Fayl:
+        a(href=scannedFile download='')
+            .file
+                p.text 📁 Yuklab olish
+    .container-row
+        p.text-content Buyurtmachi:
+        p.text-content= customerName
+    .container-row
+        p.text-content Sana:
+        p.text-content= date
+    .container-row
+        p.text-content Umumiy bahosi:
+        p.text-content 100 000 000
+    .container-row
+        p.text-content Baholovchi:
+        p.text-content= byName
+    .container-row
+        p.text-content Baholovchi Imzosi:
+        a(href=byFile download='')
+            .file
+                p.text 📁 Yuklab olish
+    .container-row
+        p.text-content Direktor Imzosi:
+        a(href="#" download='')
+            .file
+                p.text 📁 Yuklab olish
