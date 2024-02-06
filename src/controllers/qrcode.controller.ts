@@ -35,12 +35,10 @@ class QrCodeController extends AbstractQrCodeController {
 
   async scanQrCode(req: Request, res: Response): Promise<void> {
     try {
-      const fileId = req.params.id;
+      const fileName = req.params.id;
       const document = await DocumentSchema.findOne(
         {
-          file: {
-            name: `${fileId}.pdf`,
-          },
+          "file.name": `${fileName}.pdf`,
         },
         {},
         {
