@@ -3,6 +3,7 @@ import { PassThrough } from "stream";
 import QRCode from "qrcode";
 import { v4 } from "uuid";
 import { DocumentSchema } from "../database/document.scema";
+import { FileSchema } from "../database/files.scema";
 
 abstract class AbstractQrCodeController {
   abstract generateQrCode(req: Request, res: Response): Promise<void>;
@@ -36,9 +37,12 @@ class QrCodeController extends AbstractQrCodeController {
   async scanQrCode(req: Request, res: Response): Promise<void> {
     try {
       const fileName = req.params.id;
+      const file = await FileSchema.findOne({
+        name: `${fileName}.pdf`,
+      });
       const document = await DocumentSchema.findOne(
         {
-          "file.name": `${fileName}.pdf`,
+          file: file?.id,
         },
         {},
         {
