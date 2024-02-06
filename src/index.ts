@@ -12,6 +12,7 @@ import "./database/connection";
 import JwtUtil from "./utils/jwt.util";
 import QrcodeController from "./controllers/qrcode.controller";
 import path from "node:path";
+import { hostname } from "node:os";
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
@@ -34,5 +35,6 @@ app.use(`${apiRoot}/document`, DocumentRouter);
 app.use(`${apiRoot}/files`, FilesRouter);
 
 app.listen(port, () => {
-    console.log(`[server]: Server is running at http://localhost:${port}`);
+    const hostname  = process.env.HOSTNAME || "localhost";
+    console.log(`Server is running on http://${hostname}:${port}`);
 });
