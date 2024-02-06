@@ -1,0 +1,34 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const dotenv_1 = __importDefault(require("dotenv"));
+const users_router_1 = __importDefault(require("./routes/users.router"));
+const auth_router_1 = __importDefault(require("./routes/auth.router"));
+const category_router_1 = __importDefault(require("./routes/category.router"));
+const document_router_1 = __importDefault(require("./routes/document.router"));
+const files_router_1 = __importDefault(require("./routes/files.router"));
+const qrcode_router_1 = __importDefault(require("./routes/qrcode.router"));
+dotenv_1.default.config();
+require("./database/connection");
+const jwt_util_1 = __importDefault(require("./utils/jwt.util"));
+const app = (0, express_1.default)();
+const port = process.env.PORT || 3000;
+const apiRoot = process.env.ROOT || "/api/v1";
+app.use(express_1.default.json());
+app.use(express_1.default.urlencoded({ extended: true }));
+app.use(express_1.default.static("public"));
+app.set("view engine", "pug");
+app.set("views", "public/views");
+app.use(`/`, qrcode_router_1.default);
+app.use(`${apiRoot}/auth`, auth_router_1.default);
+app.use(jwt_util_1.default.middleware);
+app.use(`${apiRoot}/user`, users_router_1.default);
+app.use(`${apiRoot}/category`, category_router_1.default);
+app.use(`${apiRoot}/document`, document_router_1.default);
+app.use(`${apiRoot}/files`, files_router_1.default);
+app.listen(port, () => {
+    console.log(`[server]: Server is running at http://localhost:${port}`);
+});
