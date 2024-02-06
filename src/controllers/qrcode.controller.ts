@@ -36,6 +36,9 @@ class QrCodeController extends AbstractQrCodeController {
   async scanQrCode(req: Request, res: Response): Promise<void> {
     try {
       const fileName = req.params.id;
+      console.log('====================================');
+      console.log(fileName);
+      console.log('====================================');
       const document = await DocumentSchema.findOne(
         {
           "file.name": `${fileName}.pdf`,
@@ -54,6 +57,9 @@ class QrCodeController extends AbstractQrCodeController {
           ],
         }
       );
+      console.log('====================================');
+      console.log(document);
+      console.log('====================================');
       if (!document) {
         res.send("Document not found");
       } else {
