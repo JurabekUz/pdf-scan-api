@@ -11,6 +11,7 @@ const category_router_1 = __importDefault(require("./routes/category.router"));
 const document_router_1 = __importDefault(require("./routes/document.router"));
 const files_router_1 = __importDefault(require("./routes/files.router"));
 const qrcode_router_1 = __importDefault(require("./routes/qrcode.router"));
+const os_1 = __importDefault(require("os"));
 dotenv_1.default.config();
 require("./database/connection");
 const jwt_util_1 = __importDefault(require("./utils/jwt.util"));
@@ -30,6 +31,6 @@ app.use(`${apiRoot}/category`, category_router_1.default);
 app.use(`${apiRoot}/document`, document_router_1.default);
 app.use(`${apiRoot}/files`, files_router_1.default);
 app.listen(port, () => {
-    const hostname = process.env.HOSTNAME || "localhost";
+    const hostname = os_1.default.hostname();
     console.log(`Server is running on http://${hostname}:${port}`);
 });
