@@ -14,6 +14,9 @@ const documentSchema = new mongoose.Schema<FileInterface>(
         size: {
             type: Number,
         },
+        pageCount: {
+            type: Number,
+        },
         path: {
             type: String,
             required: true,
