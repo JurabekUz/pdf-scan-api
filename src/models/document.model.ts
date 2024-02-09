@@ -10,7 +10,15 @@ export interface DocumentInterface {
     date: Date;
     file: FileInterface;
     by: UserInterface;
+    status: {
+        type: string;
+        enum: ["pending", "confirmed", "rejected"];
+        default: "pending";
+    };
     is_delete: boolean;
     created_at: Date;
     updated_at: Date;
 }
+
+
+

@@ -1,120 +1,175 @@
-import { Request, Response } from "express";
-import { DocumentSchema } from "../database/document.scema";
-import { DocumentInterface } from "../models/document.model";
+import {Request, Response} from "express";
+import {DocumentSchema} from "../database/document.scema";
+import {DocumentInterface} from "../models/document.model";
+import {UserSchema} from "../database/user.scema";
+import {UserRoles} from "../models/user.model";
+import moment from "moment";
 
 abstract class AbstractDocumentController {
-  abstract getDocuments(req: Request, res: Response): void;
+    abstract getDocuments(req: Request, res: Response): void;
 
-  abstract getDocument(req: Request, res: Response): void;
+    abstract getDocument(req: Request, res: Response): void;
 
-  abstract createDocument(req: Request, res: Response): void;
+    abstract createDocument(req: Request, res: Response): void;
 
-  abstract updateDocument(req: Request, res: Response): void;
+    abstract updateDocument(req: Request, res: Response): void;
 
-  abstract deleteDocument(req: Request, res: Response): void;
+    abstract deleteDocument(req: Request, res: Response): void;
+
+    abstract changeStatus(req: Request, res: Response): void;
 }
 
 class DocumentController extends AbstractDocumentController {
-  async createDocument(req: Request, res: Response): Promise<void> {
-    try {
-      const category = await DocumentSchema.create({
-        file: req.body.file,
-        type: req.body.type,
-        by: req.body.requestedBy.id,
-        date: Date.now(),
-        number: req.body.number,
-        value: req.body.value,
-        customerName: req.body.customerName,
-      });
-      res.status(201).json({
-        ok: true,
-        data: category,
-      });
-    } catch (err) {
-      res.status(500).json({
-        ok: false,
-        message: err,
-      });
+    async createDocument(req: Request, res: Response): Promise<void> {
+        try {
+            const category = await DocumentSchema.create({
+                file: req.body.file,
+                type: req.body.type,
+                by: req.body.requestedBy.id,
+                date: Date.now(),
+                number: req.body.number,
+                value: req.body.value,
+                customerName: req.body.customerName,
+            });
+            res.status(201).json({
+                ok: true,
+                data: category,
+            });
+        } catch (err) {
+            res.status(500).json({
+                ok: false,
+                message: err,
+            });
+        }
     }
-  }
 
-  async deleteDocument(req: Request, res: Response): Promise<void> {
-    try {
-      await DocumentSchema.findByIdAndUpdate(req.params.id, {
-        is_delete: true,
-      });
-      res.status(200).json({
-        ok: true,
-        message: "Document deleted",
-      });
-    } catch (err) {
-      res.status(500).json({
-        ok: false,
-        message: err,
-      });
+    async deleteDocument(req: Request, res: Response): Promise<void> {
+        try {
+            await DocumentSchema.findByIdAndUpdate(req.params.id, {
+                is_delete: true,
+            });
+            res.status(200).json({
+                ok: true,
+                message: "Document deleted",
+            });
+        } catch (err) {
+            res.status(500).json({
+                ok: false,
+                message: err,
+            });
+        }
     }
-  }
 
-  async getDocuments(req: Request, res: Response): Promise<void> {
-    try {
-      const page = req.query.page ? parseInt(req.query.page.toString()) : 1;
-      const limit = req.query.limit ? parseInt(req.query.limit.toString()) : 15;
-      const skip = (page - 1) * limit;
-      const search = req.query.search ? req.query.search.toString() : "";
-      const documents = await DocumentSchema.find({
-        is_delete: false,
-        $or: [{ customerName: { $regex: search, $options: "i" } }],
-      })
-        .skip(skip)
-        .limit(limit);
+    async getDocuments(req: Request, res: Response): Promise<void> {
+        try {
+            const page = req.query.page ? parseInt(req.query.page.toString()) : 1;
+            const limit = req.query.limit ? parseInt(req.query.limit.toString()) : 15;
+            const skip = (page - 1) * limit;
+            const search = req.query.search ? req.query.search.toString() : "";
+            const filter = req.query.filter ? req.query.filter.toString() : null;
+            const reqById = req.body.requestedBy;
 
-      res.status(200).json({
-        ok: true,
-        totalElements: documents.length,
-        data: documents,
-      });
-    } catch (err) {
-      res.status(500).json({
-        ok: false,
-        message: err,
-      });
+
+            const user = await UserSchema.findById(reqById.id);
+
+            let documents: any[];
+            if (filter) {
+                const date = moment.unix(parseInt(filter) / 1000);
+                documents = await DocumentSchema.find({
+                    is_delete: false,
+                    by: (user?.role === UserRoles.ADMIN || user?.role === UserRoles.DIRECTOR) ? {$exists: true} : reqById.id,
+                    createdAt: {
+                        $gte: date.startOf("day").toDate(),
+                        $lt: date.endOf("day").toDate(),
+                    },
+                })
+                    .skip(skip)
+                    .limit(limit);
+            } else {
+                documents = await DocumentSchema.find({
+                    is_delete: false,
+                    by: (user?.role === UserRoles.ADMIN || user?.role === UserRoles.DIRECTOR) ? {$exists: true} : reqById.id,
+                    $or: [{customerName: {$regex: search, $options: "i"}}, {number: {$regex: search, $options: "i"}},
+                    ]
+                })
+                    .skip(skip)
+                    .limit(limit);
+            }
+
+
+            const totalElements = await DocumentSchema.countDocuments({
+                is_delete: false,
+                by: (user?.role === UserRoles.ADMIN || user?.role === UserRoles.DIRECTOR) ? {$exists: true} : reqById.id,
+            });
+            res.status(200).json({
+                ok: true,
+                totalElements: totalElements ?? 0,
+                data: documents,
+            });
+        } catch (err) {
+            res.status(500).json({
+                ok: false,
+                message: err,
+            });
+        }
     }
-  }
 
-  async getDocument(req: Request, res: Response): Promise<void> {
-    try {
-      const category = await DocumentSchema.findById(req.params.id);
-      res.status(200).json({
-        ok: true,
-        data: category,
-      });
-    } catch (err) {
-      res.status(500).json({
-        ok: false,
-        message: err,
-      });
+    async getDocument(req: Request, res: Response): Promise<void> {
+        try {
+            const category = await DocumentSchema.findById(req.params.id);
+            res.status(200).json({
+                ok: true,
+                data: category,
+            });
+        } catch (err) {
+            res.status(500).json({
+                ok: false,
+                message: err,
+            });
+        }
     }
-  }
 
-  async updateDocument(req: Request, res: Response): Promise<void> {
-    try {
-      const newDocument: DocumentInterface = req.body;
-      const updatedDocument = await DocumentSchema.findByIdAndUpdate(
-        req.params.id,
-        newDocument,
-        { new: true }
-      );
-      res.status(200).json({
-        ok: true,
-        data: updatedDocument,
-      });
-    } catch (err) {
-      res.status(500).json({
-        ok: false,
-        message: err,
-      });
+    async updateDocument(req: Request, res: Response): Promise<void> {
+        try {
+            const newDocument: DocumentInterface = req.body;
+            const updatedDocument = await DocumentSchema.findByIdAndUpdate(
+                req.params.id,
+                newDocument,
+                {new: true}
+            );
+            res.status(200).json({
+                ok: true,
+                data: updatedDocument,
+            });
+        } catch (err) {
+            res.status(500).json({
+                ok: false,
+                message: err,
+            });
+        }
     }
-  }
+
+    async changeStatus(req: Request, res: Response): Promise<void> {
+        try {
+            const status = req.body.status;
+            const updatedDocument = await DocumentSchema.findByIdAndUpdate(
+                req.params.id,
+                {
+                    status: status,
+                },
+                {new: true}
+            );
+            res.status(200).json({
+                ok: true,
+                data: updatedDocument,
+            });
+        } catch (err) {
+            res.status(500).json({
+                ok: false,
+                message: err,
+            });
+        }
+    }
 }
 
 export default new DocumentController();

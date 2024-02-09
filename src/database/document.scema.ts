@@ -37,6 +37,11 @@ const documentSchema = new mongoose.Schema<DocumentInterface>(
         value: {
             type: Number,
             required: true,
+        },
+        status: {
+            type: String,
+            enum: ["pending", "confirmed", "rejected"],
+            default: "pending",
         }
     },
     {

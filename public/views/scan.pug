@@ -6,12 +6,17 @@ head
     style
         include ../views/scan.css
 .container
-    h2 Qr kod ma'lumotlari
+    h2 A-Value Company
+    p.text-content Qr kod ma'lumotlari
     .container-row
-        p.text-content Fayl:
+        p.text-content= "Fayl (" + pageCount + " bet):"
         a(href=scannedFile download='')
             .file
                 p.text 📁 Yuklab olish
+
+    .container-row
+        p.text-content Hujjat Raqami:
+        p.text-content= number
     .container-row
         p.text-content Buyurtmachi:
         p.text-content= customerName

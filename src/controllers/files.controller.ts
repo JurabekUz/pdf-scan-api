@@ -25,7 +25,8 @@ class FileController extends AbstractFileController {
                 is_delete: false,
                 name: file?.originalname,
                 path: file?.path,
-                size: file?.size
+                size: file?.size,
+                pageCount: req.body.pageCount || 0,
             });
             res.status(201).json({
                 ok: true,
