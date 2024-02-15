@@ -58,7 +58,7 @@ class QrCodeController extends AbstractQrCodeController {
                     ],
                 }
             );
-            if (!document || !file) {
+            if (!document || !file || document.is_delete) {
                 res.send("Document not found");
             } else if (document.status.toString() != "confirmed") {
                 res.send("Document not found");

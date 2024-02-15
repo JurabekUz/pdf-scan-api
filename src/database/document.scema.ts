@@ -8,6 +8,11 @@ const documentSchema = new mongoose.Schema<DocumentInterface>(
             ref: "Category",
             required: true,
         },
+        scope: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Scope",
+            required: true,
+        },
         is_delete: {
             type: Boolean,
             default: false,
@@ -52,6 +57,7 @@ const documentSchema = new mongoose.Schema<DocumentInterface>(
 // populate
 documentSchema.pre("find", function () {
     this.populate("type", "-is_delete -__v ");
+    this.populate("scope", "-is_delete -__v ");
     this.populate("file", "-is_delete -__v ");
     this.populate("by", "-password -is_delete -__v ");
 });
