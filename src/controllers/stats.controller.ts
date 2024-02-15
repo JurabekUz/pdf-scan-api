@@ -2,6 +2,7 @@ import e, {Request, Response} from "express";
 import {DocumentSchema} from "../database/document.scema";
 import {UserSchema} from "../database/user.scema";
 import {CategorySchema} from "../database/category.scema";
+import {ScopeSchema} from "../database/scope.scema";
 
 abstract class AbstractStatsController {
     abstract getByUser(req: Request, res: Response): void;
@@ -78,5 +79,35 @@ class StatsController extends AbstractStatsController {
     }
 
 
+    async getByScope(_req: e.Request, res: e.Response): Promise<void> {
+        try {
+            const allDocuments = await DocumentSchema.find();
+            const documents = await DocumentSchema.aggregate([
+                {
+                    $group: {
+                        _id: "$scope",
+                        count: {$sum: 1},
+                    }
+                },
+            ]);
+            const scopes = await ScopeSchema.populate(documents, {
+                path: "_id",
+                select: "name",
+            });
+            res.status(200).json({
+                ok: true,
+                data: scopes,
+                totalElements: allDocuments.length,
+            });
+        } catch (e) {
+            res.status(500).json({
+                ok: false,
+                message: e,
+            });
+
+        }
+    }
+
 }
+
 export default new StatsController();

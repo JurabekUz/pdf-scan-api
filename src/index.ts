@@ -12,6 +12,8 @@ import os from "os";
 dotenv.config();
 import "./database/connection";
 import JwtUtil from "./utils/jwt.util";
+import ScopeRouter from "./routes/scope.router";
+
 const app: Express = express();
 const port = process.env.PORT || 3000;
 const apiRoot = process.env.ROOT || "/api/v1";
@@ -28,6 +30,7 @@ app.use(`${apiRoot}/auth`, AuthRouter);
 app.use(JwtUtil.middleware);
 app.use(`${apiRoot}/user`, UserRouter);
 app.use(`${apiRoot}/category`, CategoryRouter);
+app.use(`${apiRoot}/scope`, ScopeRouter);
 app.use(`${apiRoot}/document`, DocumentRouter);
 app.use(`${apiRoot}/files`, FilesRouter);
 app.use(`${apiRoot}/statistic`, StatsRouter);
