@@ -58,9 +58,8 @@ class QrCodeController extends AbstractQrCodeController {
                     ],
                 }
             );
-            if (!document || !file || document.is_delete) {
-                res.send("Document not found");
-            } else if (document.status.toString() != "confirmed") {
+            if (!document || !file || document.is_delete || document.status.toString() != "confirmed") {
+                res.setHeader("X-Error", "Document not found or deleted or not confirmed");
                 res.send("Document not found");
             } else {
                 const doc = {
@@ -74,14 +73,14 @@ class QrCodeController extends AbstractQrCodeController {
                         day: "numeric",
                     }),
                     scannedFile: `${process.env.QR_CODE_SCAN_URL}/download/${document.file}`,
-                    byFile: `${process.env.QR_CODE_SCAN_URL}/download/${document.by.file._id}`,
+                    byFile: `${process.env.QR_CODE_SCAN_URL}/download/${document.by.file?._id}`,
                     byName: document.by.name,
                 };
-                console.log(doc);
                 res.render("scan", doc);
             }
         } catch (err) {
-            res.send("Document not found");
+            res.setHeader("X-Error", "Document not found or invalid: " + err);
+            res.send("Document not found or invalid"+err);
         }
     }
 }
