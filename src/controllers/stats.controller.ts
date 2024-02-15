@@ -22,12 +22,19 @@ class StatsController extends AbstractStatsController {
             const allDocuments = await DocumentSchema.find();
             const documents = await DocumentSchema.aggregate([
                 {
-                    $group: {
-                        _id: "$by",
-                        count: {$sum: 1},
+                    $match: {
+                        is_delete: false,
+                        status: "confirmed"
                     }
                 },
+                {
+                    $group: {
+                        _id: "$by",
+                        count: {$sum: 1}
+                    }
+                }
             ]);
+            console.log(documents)
             const users = await UserSchema.populate(documents, {
                 path: "_id",
                 select: "name",
@@ -49,7 +56,12 @@ class StatsController extends AbstractStatsController {
     async getByType(_req: e.Request, res: e.Response): Promise<void> {
         try {
             const allDocuments = await DocumentSchema.find();
-            const documents = await DocumentSchema.aggregate([
+            const documents = await DocumentSchema.aggregate([{
+                $match: {
+                    is_delete: false,
+                    status: "confirmed"
+                }
+            },
                 {
                     $group: {
                         _id: "$type",
@@ -84,6 +96,12 @@ class StatsController extends AbstractStatsController {
             const allDocuments = await DocumentSchema.find();
             const documents = await DocumentSchema.aggregate([
                 {
+                    $match: {
+                        is_delete: false,
+                        status: "confirmed"
+                    }
+                },
+                {
                     $group: {
                         _id: "$scope",
                         count: {$sum: 1},
@@ -107,7 +125,6 @@ class StatsController extends AbstractStatsController {
 
         }
     }
-
 }
 
 export default new StatsController();
