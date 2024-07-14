@@ -16,6 +16,7 @@ const stream_1 = require("stream");
 const qrcode_1 = __importDefault(require("qrcode"));
 const uuid_1 = require("uuid");
 const document_scema_1 = require("../database/document.scema");
+const files_scema_1 = require("../database/files.scema");
 class AbstractQrCodeController {
 }
 class QrCodeController extends AbstractQrCodeController {
@@ -44,11 +45,15 @@ class QrCodeController extends AbstractQrCodeController {
         });
     }
     scanQrCode(req, res) {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const fileName = req.params.id;
+                const file = yield files_scema_1.FileSchema.findOne({
+                    name: `${fileName}.pdf`,
+                });
                 const document = yield document_scema_1.DocumentSchema.findOne({
-                    "file.name": `${fileName}.pdf`,
+                    file: file === null || file === void 0 ? void 0 : file.id,
                 }, {}, {
                     populate: [
                         {
@@ -61,12 +66,14 @@ class QrCodeController extends AbstractQrCodeController {
                         },
                     ],
                 });
-                if (!document) {
+                if (!document || !file || document.is_delete || document.status.toString() != "confirmed") {
+                    res.setHeader("X-Error", "Document not found or deleted or not confirmed");
                     res.send("Document not found");
                 }
                 else {
                     const doc = {
                         number: document.number,
+                        pageCount: (_a = file === null || file === void 0 ? void 0 : file.pageCount) !== null && _a !== void 0 ? _a : "0",
                         customerName: document.customerName,
                         value: document.value,
                         date: document.date.toLocaleDateString("uz-UZ", {
@@ -75,14 +82,15 @@ class QrCodeController extends AbstractQrCodeController {
                             day: "numeric",
                         }),
                         scannedFile: `${process.env.QR_CODE_SCAN_URL}/download/${document.file}`,
-                        byFile: `${process.env.QR_CODE_SCAN_URL}/download/${document.by.file._id}`,
+                        byFile: `${process.env.QR_CODE_SCAN_URL}/download/${(_b = document.by.file) === null || _b === void 0 ? void 0 : _b._id}`,
                         byName: document.by.name,
                     };
                     res.render("scan", doc);
                 }
             }
             catch (err) {
-                res.send("Document not found");
+                res.setHeader("X-Error", "Document not found or invalid: " + err);
+                res.send("Document not found or invalid" + err);
             }
         });
     }

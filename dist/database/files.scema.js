@@ -17,6 +17,9 @@ const documentSchema = new mongoose_1.default.Schema({
     size: {
         type: Number,
     },
+    pageCount: {
+        type: Number,
+    },
     path: {
         type: String,
         required: true,
