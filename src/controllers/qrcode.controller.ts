@@ -80,7 +80,7 @@ class QrCodeController extends AbstractQrCodeController {
             }
         } catch (err) {
             res.setHeader("X-Error", "Document not found or invalid: " + err);
-            res.send("Document not found or invalid"+err);
+            res.send("Document not found or invalid" + err);
         }
     }
 }

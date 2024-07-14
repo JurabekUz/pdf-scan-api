@@ -11,6 +11,11 @@ const documentSchema = new mongoose_1.default.Schema({
         ref: "Category",
         required: true,
     },
+    scope: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "Scope",
+        required: true,
+    },
     is_delete: {
         type: Boolean,
         default: false,
@@ -40,6 +45,11 @@ const documentSchema = new mongoose_1.default.Schema({
     value: {
         type: Number,
         required: true,
+    },
+    status: {
+        type: String,
+        enum: ["pending", "confirmed", "rejected"],
+        default: "pending",
     }
 }, {
     timestamps: true,
@@ -47,6 +57,7 @@ const documentSchema = new mongoose_1.default.Schema({
 // populate
 documentSchema.pre("find", function () {
     this.populate("type", "-is_delete -__v ");
+    this.populate("scope", "-is_delete -__v ");
     this.populate("file", "-is_delete -__v ");
     this.populate("by", "-password -is_delete -__v ");
 });

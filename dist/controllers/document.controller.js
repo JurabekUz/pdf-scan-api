@@ -10,13 +10,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const document_scema_1 = require("../database/document.scema");
+const user_scema_1 = require("../database/user.scema");
+const user_model_1 = require("../models/user.model");
 class AbstractDocumentController {
 }
 class DocumentController extends AbstractDocumentController {
     createDocument(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const category = yield document_scema_1.DocumentSchema.create({
+                const document = yield document_scema_1.DocumentSchema.create({
                     file: req.body.file,
                     type: req.body.type,
                     by: req.body.requestedBy.id,
@@ -24,16 +26,17 @@ class DocumentController extends AbstractDocumentController {
                     number: req.body.number,
                     value: req.body.value,
                     customerName: req.body.customerName,
+                    scope: req.body.scope,
                 });
                 res.status(201).json({
                     ok: true,
-                    data: category,
+                    data: document,
                 });
             }
             catch (err) {
                 res.status(500).json({
                     ok: false,
-                    message: err
+                    message: err,
                 });
             }
         });
@@ -41,16 +44,18 @@ class DocumentController extends AbstractDocumentController {
     deleteDocument(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                yield document_scema_1.DocumentSchema.findByIdAndUpdate(req.params.id, { is_delete: true });
+                yield document_scema_1.DocumentSchema.findByIdAndUpdate(req.params.id, {
+                    is_delete: true,
+                });
                 res.status(200).json({
                     ok: true,
-                    message: "Document deleted"
+                    message: "Document deleted",
                 });
             }
             catch (err) {
                 res.status(500).json({
                     ok: false,
-                    message: err
+                    message: err,
                 });
             }
         });
@@ -58,26 +63,118 @@ class DocumentController extends AbstractDocumentController {
     getDocuments(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const page = req.query.page ? parseInt(req.query.page.toString()) : 1;
+                let page = req.query.page ? parseInt(req.query.page.toString()) : 1;
+                page = page < 1 ? 1 : page;
                 const limit = req.query.limit ? parseInt(req.query.limit.toString()) : 15;
                 const skip = (page - 1) * limit;
-                const search = req.query.search ? req.query.search.toString() : '';
-                const documents = yield document_scema_1.DocumentSchema.find({
-                    is_delete: false,
-                    $or: [
-                        { customerName: { $regex: search, $options: 'i' } }
-                    ],
-                }).skip(skip).limit(limit);
+                const search = req.query.search ? req.query.search.toString() : "";
+                const from = req.query.from ? (req.query.from.toString()) : null;
+                const to = req.query.to ? (req.query.to.toString()) : null;
+                // filterBy should be category, scope, or by user
+                const filterBy = req.query.filterBy ? req.query.filterBy.toString() : "";
+                // filterValue should be the id of the category, scope, or user
+                const filterValue = req.query.filterValue ? req.query.filterValue.toString() : "";
+                const reqById = req.body.requestedBy;
+                const user = yield user_scema_1.UserSchema.findById(reqById.id);
+                let documents;
+                let totalElements;
+                if (limit == null && (user === null || user === void 0 ? void 0 : user.role) != user_model_1.UserRoles.USER) {
+                    documents = yield document_scema_1.DocumentSchema.find();
+                    totalElements = documents.length;
+                }
+                else if (limit == null && (user === null || user === void 0 ? void 0 : user.role) == user_model_1.UserRoles.USER) {
+                    documents = yield document_scema_1.DocumentSchema.find({
+                        is_delete: false,
+                        by: reqById.id,
+                        $or: [{ customerName: { $regex: search, $options: "i" } }, { number: { $regex: search, $options: "i" } },
+                        ]
+                    });
+                    totalElements = documents.length;
+                }
+                else if (from && to && (user === null || user === void 0 ? void 0 : user.role) != user_model_1.UserRoles.USER) {
+                    documents = yield document_scema_1.DocumentSchema.find({
+                        is_delete: false,
+                        by: ((user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.ADMIN || (user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.DIRECTOR) ? { $exists: true } : reqById.id,
+                        createdAt: {
+                            $gte: new Date(from),
+                            $lt: new Date(to),
+                        }
+                    })
+                        .skip(skip)
+                        .limit(limit);
+                    totalElements = documents.length;
+                }
+                else if (filterBy != null && filterValue != null && (user === null || user === void 0 ? void 0 : user.role) != user_model_1.UserRoles.USER) {
+                    switch (filterBy) {
+                        case "category":
+                            documents = yield document_scema_1.DocumentSchema.find({
+                                is_delete: false,
+                                by: ((user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.ADMIN || (user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.DIRECTOR) ? { $exists: true } : reqById.id,
+                                type: filterValue,
+                            })
+                                .skip(skip)
+                                .limit(limit);
+                            totalElements = documents.length;
+                            break;
+                        case "scope":
+                            documents = yield document_scema_1.DocumentSchema.find({
+                                is_delete: false,
+                                by: ((user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.ADMIN || (user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.DIRECTOR) ? { $exists: true } : reqById.id,
+                                scope: filterValue,
+                            })
+                                .skip(skip)
+                                .limit(limit);
+                            totalElements = documents.length;
+                            break;
+                        case "by":
+                            documents = yield document_scema_1.DocumentSchema.find({
+                                is_delete: false,
+                                by: filterValue,
+                            })
+                                .skip(skip)
+                                .limit(limit);
+                            totalElements = documents.length;
+                            break;
+                        default:
+                            documents = yield document_scema_1.DocumentSchema.find({
+                                is_delete: false,
+                                by: ((user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.ADMIN || (user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.DIRECTOR) ? { $exists: true } : reqById.id,
+                                $or: [{ customerName: { $regex: search, $options: "i" } }, {
+                                        number: {
+                                            $regex: search,
+                                            $options: "i"
+                                        }
+                                    },
+                                ]
+                            })
+                                .skip(skip)
+                                .limit(limit);
+                            totalElements = documents.length;
+                            break;
+                    }
+                }
+                else {
+                    documents = yield document_scema_1.DocumentSchema.find({
+                        is_delete: false,
+                        by: ((user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.ADMIN || (user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.DIRECTOR) ? { $exists: true } : reqById.id,
+                        $or: [{ customerName: { $regex: search, $options: "i" } }, { number: { $regex: search, $options: "i" } },
+                        ]
+                    })
+                        .skip(skip)
+                        .limit(limit);
+                    totalElements = documents.length;
+                }
                 res.status(200).json({
                     ok: true,
-                    totalElements: documents.length,
+                    totalElements: totalElements,
                     data: documents,
                 });
             }
             catch (err) {
+                console.log(err);
                 res.status(500).json({
                     ok: false,
-                    message: err
+                    message: err,
                 });
             }
         });
@@ -85,16 +182,16 @@ class DocumentController extends AbstractDocumentController {
     getDocument(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const category = yield document_scema_1.DocumentSchema.findById(req.params.id);
+                const document = yield document_scema_1.DocumentSchema.findById(req.params.id);
                 res.status(200).json({
                     ok: true,
-                    data: category,
+                    data: document,
                 });
             }
             catch (err) {
                 res.status(500).json({
                     ok: false,
-                    message: err
+                    message: err,
                 });
             }
         });
@@ -112,7 +209,27 @@ class DocumentController extends AbstractDocumentController {
             catch (err) {
                 res.status(500).json({
                     ok: false,
-                    message: err
+                    message: err,
+                });
+            }
+        });
+    }
+    changeStatus(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const status = req.body.status;
+                const updatedDocument = yield document_scema_1.DocumentSchema.findByIdAndUpdate(req.params.id, {
+                    status: status,
+                }, { new: true });
+                res.status(200).json({
+                    ok: true,
+                    data: updatedDocument,
+                });
+            }
+            catch (err) {
+                res.status(500).json({
+                    ok: false,
+                    message: err,
                 });
             }
         });

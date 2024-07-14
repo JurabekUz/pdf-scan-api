@@ -16,69 +16,81 @@ const stream_1 = require("stream");
 const qrcode_1 = __importDefault(require("qrcode"));
 const uuid_1 = require("uuid");
 const document_scema_1 = require("../database/document.scema");
+const files_scema_1 = require("../database/files.scema");
 class AbstractQrCodeController {
 }
 class QrCodeController extends AbstractQrCodeController {
     generateQrCode(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const width = req.query.width ? parseFloat(req.query.width.toString()) : 200;
+                const width = req.query.width
+                    ? parseFloat(req.query.width.toString())
+                    : 200;
                 const qrStream = new stream_1.PassThrough();
                 const uuid = (0, uuid_1.v4)();
                 const scanUrl = `${process.env.QR_CODE_SCAN_URL}/${uuid}`;
                 yield qrcode_1.default.toFileStream(qrStream, scanUrl, {
-                    type: 'png',
+                    type: "png",
                     width: width,
-                    errorCorrectionLevel: 'H'
+                    errorCorrectionLevel: "H",
                 });
-                res.setHeader('x-qrcode-id', uuid);
-                res.setHeader('Content-Type', 'image/png');
-                res.setHeader('Content-Disposition', 'attachment; filename=qr-code.png');
+                res.setHeader("x-qrcode-id", uuid);
+                res.setHeader("Content-Type", "image/png");
+                res.setHeader("Content-Disposition", "attachment; filename=qr-code.png");
                 qrStream.pipe(res);
             }
             catch (err) {
-                console.error('Failed to return content', err);
+                console.error("Failed to return content", err);
             }
         });
     }
     scanQrCode(req, res) {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const documentId = req.params.id;
-                const document = yield document_scema_1.DocumentSchema.findById(documentId, {}, {
+                const fileName = req.params.id;
+                const file = yield files_scema_1.FileSchema.findOne({
+                    name: `${fileName}.pdf`,
+                });
+                const document = yield document_scema_1.DocumentSchema.findOne({
+                    file: file === null || file === void 0 ? void 0 : file.id,
+                }, {}, {
                     populate: [
                         {
-                            path: 'by',
-                            select: 'name file',
+                            path: "by",
+                            select: "name file",
                             populate: {
-                                path: 'file',
-                                select: '_id'
-                            }
-                        }
-                    ]
+                                path: "file",
+                                select: "_id",
+                            },
+                        },
+                    ],
                 });
-                if (!document) {
-                    res.send('Document not found');
+                if (!document || !file || document.is_delete || document.status.toString() != "confirmed") {
+                    res.setHeader("X-Error", "Document not found or deleted or not confirmed");
+                    res.send("Document not found");
                 }
                 else {
                     const doc = {
                         number: document.number,
+                        pageCount: (_a = file === null || file === void 0 ? void 0 : file.pageCount) !== null && _a !== void 0 ? _a : "0",
                         customerName: document.customerName,
                         value: document.value,
-                        date: document.date.toLocaleDateString('uz-UZ', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
+                        date: document.date.toLocaleDateString("uz-UZ", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
                         }),
                         scannedFile: `${process.env.QR_CODE_SCAN_URL}/download/${document.file}`,
-                        byFile: `${process.env.QR_CODE_SCAN_URL}/download/${document.by.file._id}`,
-                        byName: document.by.name
+                        byFile: `${process.env.QR_CODE_SCAN_URL}/download/${(_b = document.by.file) === null || _b === void 0 ? void 0 : _b._id}`,
+                        byName: document.by.name,
                     };
-                    res.render('scan', doc);
+                    res.render("scan", doc);
                 }
             }
             catch (err) {
-                res.send('Document not found');
+                res.setHeader("X-Error", "Document not found or invalid: " + err);
+                res.send("Document not found or invalid" + err);
             }
         });
     }
