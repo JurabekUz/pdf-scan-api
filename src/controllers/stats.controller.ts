@@ -3,6 +3,7 @@ import {DocumentSchema} from "../database/document.scema";
 import {UserSchema} from "../database/user.scema";
 import {CategorySchema} from "../database/category.scema";
 import {ScopeSchema} from "../database/scope.scema";
+import { UserRoles } from "../models/user.model";
 
 abstract class AbstractStatsController {
     abstract getByUser(req: Request, res: Response): void;
@@ -19,7 +20,10 @@ class StatsController extends AbstractStatsController {
 
     async getByUser(_req: e.Request, res: e.Response): Promise<void> {
         try {
-            const allDocuments = await DocumentSchema.find();
+            const currentUser  = await UserSchema.findById(_req.body.requestedBy._id);
+            const allDocuments = await DocumentSchema.find(
+                currentUser?.role===UserRoles.USER?{by: currentUser._id}:{}
+            );
             const documents = await DocumentSchema.aggregate([
                 {
                     $match: {
@@ -34,7 +38,6 @@ class StatsController extends AbstractStatsController {
                     }
                 }
             ]);
-            console.log(documents)
             const users = await UserSchema.populate(documents, {
                 path: "_id",
                 select: "name",
@@ -55,7 +58,10 @@ class StatsController extends AbstractStatsController {
 
     async getByType(_req: e.Request, res: e.Response): Promise<void> {
         try {
-            const allDocuments = await DocumentSchema.find();
+            const currentUser  = await UserSchema.findById(_req.body.requestedBy._id);
+            const allDocuments = await DocumentSchema.find(
+                currentUser?.role===UserRoles.USER?{by: currentUser._id}:{}
+            );
             const documents = await DocumentSchema.aggregate([{
                 $match: {
                     is_delete: false,
@@ -93,7 +99,10 @@ class StatsController extends AbstractStatsController {
 
     async getByScope(_req: e.Request, res: e.Response): Promise<void> {
         try {
-            const allDocuments = await DocumentSchema.find();
+            const currentUser  = await UserSchema.findById(_req.body.requestedBy._id);
+            const allDocuments = await DocumentSchema.find(
+                currentUser?.role===UserRoles.USER?{by: currentUser._id}:{}
+            );
             const documents = await DocumentSchema.aggregate([
                 {
                     $match: {
