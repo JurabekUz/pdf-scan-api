@@ -48,6 +48,19 @@ userSchema.methods.toJSON = function () {
     userObject.role_name = UserRoles[roleNum];
     userObject.roleName = UserRoles[roleNum];
 
+    if (!userObject.file) {
+        userObject.file = {
+            _id: "000000000000000000000000",
+            id: "000000000000000000000000",
+            name: "Fayl biriktirilmagan",
+            path: "",
+            size: 0,
+            pageCount: 0
+        };
+    } else if (typeof userObject.file === "object") {
+        userObject.file.id = userObject.file._id ? userObject.file._id.toString() : "";
+    }
+
     delete userObject.password;
     delete userObject.__v;
 
