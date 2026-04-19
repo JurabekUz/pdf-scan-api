@@ -73,10 +73,10 @@ documentSchema.methods.toJSON = function () {
     if (document.updatedAt) docObject.updated_at = (document.updatedAt as Date).toISOString();
 
     // Populated fields ID handling
-    if (docObject.type && docObject.type._id) docObject.type.id = docObject.type._id.toString();
-    if (docObject.scope && docObject.scope._id) docObject.scope.id = docObject.scope._id.toString();
-    if (docObject.file && docObject.file._id) docObject.file.id = docObject.file._id.toString();
-    if (docObject.by && docObject.by._id) docObject.by.id = docObject.by._id.toString();
+    if (docObject.type && typeof docObject.type === "object" && docObject.type._id) docObject.type.id = docObject.type._id.toString();
+    if (docObject.scope && typeof docObject.scope === "object" && docObject.scope._id) docObject.scope.id = docObject.scope._id.toString();
+    if (docObject.file && typeof docObject.file === "object" && docObject.file._id) docObject.file.id = docObject.file._id.toString();
+    if (docObject.by && typeof docObject.by === "object" && docObject.by._id) docObject.by.id = docObject.by._id.toString();
 
     delete docObject.__v;
     return docObject;

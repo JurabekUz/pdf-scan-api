@@ -33,7 +33,11 @@ app.use((req, res, next) => {
     }
     const oldJson = res.json;
     res.json = function (data) {
-        console.log(`📦 [RESPONSE] ${JSON.stringify(data)}`);
+        try {
+            console.log(`📦 [RESPONSE] ${JSON.stringify(data)}`);
+        } catch (e) {
+            console.log(`📦 [RESPONSE] (Circular or large data)`);
+        }
         return oldJson.apply(res, arguments as any);
     };
     next();

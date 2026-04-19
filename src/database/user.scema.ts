@@ -66,10 +66,10 @@ userSchema.methods.toJSON = function () {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
         };
-    } else if (typeof userObject.file === "object") {
-        userObject.file.id = userObject.file._id ? userObject.file._id.toString() : "";
-        if (userObject.file.createdAt) userObject.file.created_at = userObject.file.createdAt.toISOString();
-        if (userObject.file.updatedAt) userObject.file.updated_at = userObject.file.updatedAt.toISOString();
+    } else if (userObject.file && typeof userObject.file === "object" && userObject.file._id) {
+        userObject.file.id = userObject.file._id.toString();
+        if (userObject.file.createdAt) userObject.file.created_at = (userObject.file.createdAt as Date).toISOString();
+        if (userObject.file.updatedAt) userObject.file.updated_at = (userObject.file.updatedAt as Date).toISOString();
     }
 
     delete userObject.password;
