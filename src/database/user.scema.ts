@@ -37,9 +37,20 @@ userSchema.pre("find", function () {
 userSchema.methods.toJSON = function () {
     const user = this;
     const userObject = user.toObject();
-    userObject.id = userObject._id.toString();
-    userObject.roleName = UserRoles[userObject.role];
+
+    const idStr = userObject._id.toString();
+    userObject.id = idStr;
+    userObject._id = idStr;
+
+    const roleNum = Number(userObject.role);
+    userObject.role = roleNum;
+    userObject.role_id = roleNum;
+    userObject.role_name = UserRoles[roleNum];
+    userObject.roleName = UserRoles[roleNum];
+
     delete userObject.password;
+    delete userObject.__v;
+
     return userObject;
 };
 export const UserSchema = mongoose.model("User", userSchema);
