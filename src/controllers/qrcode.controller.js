@@ -1,4 +1,19 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,79 +23,145 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const stream_1 = require("stream");
-const qrcode_1 = __importDefault(require("qrcode"));
-const uuid_1 = require("uuid");
-const document_scema_1 = require("../database/document.scema");
-class AbstractQrCodeController {
-}
-class QrCodeController extends AbstractQrCodeController {
-    generateQrCode(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const width = req.query.width ? parseFloat(req.query.width.toString()) : 200;
-                const qrStream = new stream_1.PassThrough();
-                const uuid = (0, uuid_1.v4)();
-                const scanUrl = `${process.env.QR_CODE_SCAN_URL}/${uuid}`;
-                yield qrcode_1.default.toFileStream(qrStream, scanUrl, {
-                    type: 'png',
-                    width: width,
-                    errorCorrectionLevel: 'H'
-                });
-                res.setHeader('x-qrcode-id', uuid);
-                res.setHeader('Content-Type', 'image/png');
-                res.setHeader('Content-Disposition', 'attachment; filename=qr-code.png');
-                qrStream.pipe(res);
-            }
-            catch (err) {
-                console.error('Failed to return content', err);
-            }
-        });
+var stream_1 = require("stream");
+var qrcode_1 = require("qrcode");
+var uuid_1 = require("uuid");
+var document_scema_1 = require("../database/document.scema");
+var files_scema_1 = require("../database/files.scema");
+var AbstractQrCodeController = /** @class */ (function () {
+    function AbstractQrCodeController() {
     }
-    scanQrCode(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const documentId = req.params.id;
-                const document = yield document_scema_1.DocumentSchema.findById(documentId, {}, {
-                    populate: [
-                        {
-                            path: 'by',
-                            select: 'name file',
-                            populate: {
-                                path: 'file',
-                                select: '_id'
-                            }
+    return AbstractQrCodeController;
+}());
+var QrCodeController = /** @class */ (function (_super) {
+    __extends(QrCodeController, _super);
+    function QrCodeController() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    QrCodeController.prototype.generateQrCode = function (req, res) {
+        return __awaiter(this, void 0, void 0, function () {
+            var width, qrStream, uuid, scanUrl, err_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        width = req.query.width
+                            ? parseFloat(req.query.width.toString())
+                            : 200;
+                        qrStream = new stream_1.PassThrough();
+                        uuid = (0, uuid_1.v4)();
+                        scanUrl = "".concat(process.env.QR_CODE_SCAN_URL, "/").concat(uuid);
+                        return [4 /*yield*/, qrcode_1.default.toFileStream(qrStream, scanUrl, {
+                                type: "png",
+                                width: width,
+                                errorCorrectionLevel: "H",
+                            })];
+                    case 1:
+                        _a.sent();
+                        res.setHeader("x-qrcode-id", uuid);
+                        res.setHeader("Content-Type", "image/png");
+                        res.setHeader("Content-Disposition", "attachment; filename=qr-code.png");
+                        qrStream.pipe(res);
+                        return [3 /*break*/, 3];
+                    case 2:
+                        err_1 = _a.sent();
+                        console.error("Failed to return content", err_1);
+                        return [3 /*break*/, 3];
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QrCodeController.prototype.scanQrCode = function (req, res) {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function () {
+            var fileName, file, document_1, doc, err_2;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        _c.trys.push([0, 3, , 4]);
+                        fileName = req.params.id;
+                        return [4 /*yield*/, files_scema_1.FileSchema.findOne({
+                                name: "".concat(fileName, ".pdf"),
+                            })];
+                    case 1:
+                        file = _c.sent();
+                        return [4 /*yield*/, document_scema_1.DocumentSchema.findOne({
+                                file: file === null || file === void 0 ? void 0 : file.id,
+                            }, {}, {
+                                populate: [
+                                    {
+                                        path: "by",
+                                        select: "name file",
+                                        populate: {
+                                            path: "file",
+                                            select: "_id",
+                                        },
+                                    },
+                                ],
+                            })];
+                    case 2:
+                        document_1 = _c.sent();
+                        if (!document_1 || !file || document_1.is_delete || document_1.status.toString() != "confirmed") {
+                            res.setHeader("X-Error", "Document not found or deleted or not confirmed");
+                            res.send("Document not found");
                         }
-                    ]
-                });
-                if (!document) {
-                    res.send('Document not found');
+                        else {
+                            doc = {
+                                number: document_1.number,
+                                pageCount: (_a = file === null || file === void 0 ? void 0 : file.pageCount) !== null && _a !== void 0 ? _a : "0",
+                                customerName: document_1.customerName,
+                                value: document_1.value,
+                                date: document_1.date.toLocaleDateString("uz-UZ", {
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                }),
+                                scannedFile: "".concat(process.env.QR_CODE_SCAN_URL, "/download/").concat(document_1.file),
+                                byFile: "".concat(process.env.QR_CODE_SCAN_URL, "/download/").concat((_b = document_1.by.file) === null || _b === void 0 ? void 0 : _b._id),
+                                byName: document_1.by.name,
+                            };
+                            res.render("scan", doc);
+                        }
+                        return [3 /*break*/, 4];
+                    case 3:
+                        err_2 = _c.sent();
+                        res.setHeader("X-Error", "Document not found or invalid: " + err_2);
+                        res.send("Document not found or invalid" + err_2);
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
                 }
-                else {
-                    const doc = {
-                        number: document.number,
-                        customerName: document.customerName,
-                        value: document.value,
-                        date: document.date.toLocaleDateString('uz-UZ', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                        }),
-                        scannedFile: `${process.env.QR_CODE_SCAN_URL}/download/${document.file}`,
-                        byFile: `${process.env.QR_CODE_SCAN_URL}/download/${document.by.file._id}`,
-                        byName: document.by.name
-                    };
-                    res.render('scan', doc);
-                }
-            }
-            catch (err) {
-                res.send('Document not found');
-            }
+            });
         });
-    }
-}
+    };
+    return QrCodeController;
+}(AbstractQrCodeController));
 exports.default = new QrCodeController();

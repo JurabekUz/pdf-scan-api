@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const UploadedFile = require("./models/file");
-const DATABASE_URL =
-  process.env.DATABASE_URL || "mongodb://localhost:27017/qr-code";
+const DATABASE_URL = process.env.DATABASE_URL || "mongodb://localhost:27017/qr-code";
 
 const connect = async () => {
   try {

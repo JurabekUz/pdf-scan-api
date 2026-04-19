@@ -8,34 +8,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.mongoose = void 0;
-const mongoose_1 = __importDefault(require("mongoose"));
-exports.mongoose = mongoose_1.default;
-const user_scema_1 = require("./user.scema");
-const user_model_1 = require("../models/user.model");
-mongoose_1.default.connect(process.env.MONGO_URL || "mongodb://localhost:27017/express-typescript");
-mongoose_1.default.connection.on("connected", () => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const isExist = yield user_scema_1.UserSchema.findOne({ username: "admin" });
-        console.log("MongoDB connected successfully");
-        if (isExist)
-            return;
-        yield user_scema_1.UserSchema.create({
-            role: user_model_1.UserRoles.ADMIN,
-            name: "Admin",
-            password: process.env.ADMIN_PASSWORD || "narzullayev",
-            username: "admin",
-        });
-    }
-    catch (e) {
-        console.log(e);
-    }
-}));
-mongoose_1.default.connection.on("error", (err) => {
-    console.log("MongoDB connection error. Please make sure MongoDB is running. " + err);
-    process.exit();
-});
+exports.connectDB = void 0;
+const mongodb_1 = require("mongodb");
+const url = "mongodb://admin:strongPassword@127.0.0.1:27017/pdf_scan_api"; // user + password
+const client = new mongodb_1.MongoClient(url);
+function connectDB() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            yield client.connect();
+            console.log("✅ MongoDB ga ulanish muvaffaqiyatli");
+            return client.db();
+        }
+        catch (err) {
+            console.error("MongoDB connection error:", err);
+            process.exit(1);
+        }
+    });
+}
+exports.connectDB = connectDB;

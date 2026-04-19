@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var express_1 = require("express");
+var scope_controller_1 = require("../controllers/scope.controller");
+var router = (0, express_1.Router)();
+router.get("/", scope_controller_1.default.getScopes);
+router.get("/:id", scope_controller_1.default.getScope);
+router.post("/create", scope_controller_1.default.createScope);
+router.put("/:id", scope_controller_1.default.updateScope);
+router.delete("/:id", scope_controller_1.default.deleteScope);
+exports.default = router;

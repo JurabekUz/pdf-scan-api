@@ -171,7 +171,6 @@ class DocumentController extends AbstractDocumentController {
                 });
             }
             catch (err) {
-                console.log(err);
                 res.status(500).json({
                     ok: false,
                     message: err,
