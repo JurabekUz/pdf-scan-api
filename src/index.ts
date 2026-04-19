@@ -24,6 +24,16 @@ app.use(express.static("public"));
 app.set("view engine", "pug");
 app.set("views", "public/views");
 
+app.use((req, res, next) => {
+    console.log(`📡 [${req.method}] ${req.url}`);
+    const oldJson = res.json;
+    res.json = function (data) {
+        console.log(`📦 [RESPONSE] ${JSON.stringify(data)}`);
+        return oldJson.apply(res, arguments as any);
+    };
+    next();
+});
+
 app.use(`/`, QrCodeRouter);
 app.use(`${apiRoot}/auth`, AuthRouter);
 
