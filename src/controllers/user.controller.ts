@@ -1,7 +1,7 @@
 import {Request, Response} from "express";
 import {UserSchema} from "../database/user.scema";
 import {UserRoles} from "../models/user.model";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 abstract class AbstractUserController {
     abstract getUsers(req: Request, res: Response): void;

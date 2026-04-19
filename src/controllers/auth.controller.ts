@@ -1,6 +1,6 @@
 import {Request, Response} from "express";
 import {UserSchema} from "../database/user.scema";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import JwtUtil from "../utils/jwt.util";
 
 abstract class AbstractAuthController {
