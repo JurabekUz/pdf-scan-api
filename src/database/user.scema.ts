@@ -67,7 +67,9 @@ userSchema.methods.toJSON = function () {
             updated_at: new Date().toISOString()
         };
     } else if (userObject.file && typeof userObject.file === "object" && userObject.file._id) {
-        userObject.file.id = userObject.file._id.toString();
+        const fileIdStr = userObject.file._id.toString();
+        userObject.file.id = fileIdStr;
+        userObject.file._id = fileIdStr; // MAJBURIY: _id ni ham string qilib qo'yamiz
         if (userObject.file.createdAt) userObject.file.created_at = (userObject.file.createdAt as Date).toISOString();
         if (userObject.file.updatedAt) userObject.file.updated_at = (userObject.file.updatedAt as Date).toISOString();
     }

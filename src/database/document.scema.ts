@@ -73,10 +73,26 @@ documentSchema.methods.toJSON = function () {
     if (document.updatedAt) docObject.updated_at = (document.updatedAt as Date).toISOString();
 
     // Populated fields ID handling
-    if (docObject.type && typeof docObject.type === "object" && docObject.type._id) docObject.type.id = docObject.type._id.toString();
-    if (docObject.scope && typeof docObject.scope === "object" && docObject.scope._id) docObject.scope.id = docObject.scope._id.toString();
-    if (docObject.file && typeof docObject.file === "object" && docObject.file._id) docObject.file.id = docObject.file._id.toString();
-    if (docObject.by && typeof docObject.by === "object" && docObject.by._id) docObject.by.id = docObject.by._id.toString();
+    if (docObject.type && typeof docObject.type === "object" && docObject.type._id) {
+        const typeIdStr = docObject.type._id.toString();
+        docObject.type.id = typeIdStr;
+        docObject.type._id = typeIdStr;
+    }
+    if (docObject.scope && typeof docObject.scope === "object" && docObject.scope._id) {
+        const scopeIdStr = docObject.scope._id.toString();
+        docObject.scope.id = scopeIdStr;
+        docObject.scope._id = scopeIdStr;
+    }
+    if (docObject.file && typeof docObject.file === "object" && docObject.file._id) {
+        const fileIdStr = docObject.file._id.toString();
+        docObject.file.id = fileIdStr;
+        docObject.file._id = fileIdStr;
+    }
+    if (docObject.by && typeof docObject.by === "object" && docObject.by._id) {
+        const byIdStr = docObject.by._id.toString();
+        docObject.by.id = byIdStr;
+        docObject.by._id = byIdStr;
+    }
 
     delete docObject.__v;
     return docObject;
