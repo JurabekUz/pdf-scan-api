@@ -1,4 +1,5 @@
 import {Request, Response} from "express";
+import mongoose from "mongoose";
 import {PassThrough} from "stream";
 import QRCode from "qrcode";
 import {v4} from "uuid";
@@ -38,7 +39,11 @@ class QrCodeController extends AbstractQrCodeController {
     async scanQrCode(req: Request, res: Response): Promise<void> {
         try {
             const id = req.params.id;
-            let file = await FileSchema.findById(id);
+            let file = null;
+            
+            if (mongoose.Types.ObjectId.isValid(id)) {
+                file = await FileSchema.findById(id);
+            }
             
             if (!file) {
                 file = await FileSchema.findOne({ name: `${id}.pdf` });
