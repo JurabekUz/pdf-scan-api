@@ -42,11 +42,16 @@ userSchema.methods.toJSON = function () {
     userObject.id = idStr;
     userObject._id = idStr;
 
+    // Dual role strategy
     const roleNum = Number(userObject.role);
-    userObject.role = roleNum;
     userObject.role_id = roleNum;
+    userObject.role = UserRoles[roleNum]; // Revert to original String format
     userObject.role_name = UserRoles[roleNum];
     userObject.roleName = UserRoles[roleNum];
+
+    // Snake_case timestamps for Flutter
+    userObject.created_at = userObject.createdAt;
+    userObject.updated_at = userObject.updatedAt;
 
     if (!userObject.file) {
         userObject.file = {
@@ -55,10 +60,14 @@ userSchema.methods.toJSON = function () {
             name: "Fayl biriktirilmagan",
             path: "",
             size: 0,
-            pageCount: 0
+            pageCount: 0,
+            created_at: new Date(),
+            updated_at: new Date()
         };
     } else if (typeof userObject.file === "object") {
         userObject.file.id = userObject.file._id ? userObject.file._id.toString() : "";
+        userObject.file.created_at = userObject.file.createdAt;
+        userObject.file.updated_at = userObject.file.updatedAt;
     }
 
     delete userObject.password;

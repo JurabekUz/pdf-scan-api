@@ -61,4 +61,25 @@ documentSchema.pre("find", function () {
     this.populate("file", "-is_delete -__v ");
     this.populate("by", "-password -is_delete -__v ");
 });
+
+documentSchema.methods.toJSON = function () {
+    const document = this;
+    const docObject = document.toObject();
+
+    docObject.id = docObject._id.toString();
+
+    // Snake_case timestamps
+    docObject.created_at = docObject.createdAt;
+    docObject.updated_at = docObject.updatedAt;
+
+    // Populated fields ID handling
+    if (docObject.type && docObject.type._id) docObject.type.id = docObject.type._id.toString();
+    if (docObject.scope && docObject.scope._id) docObject.scope.id = docObject.scope._id.toString();
+    if (docObject.file && docObject.file._id) docObject.file.id = docObject.file._id.toString();
+    if (docObject.by && docObject.by._id) docObject.by.id = docObject.by._id.toString();
+
+    delete docObject.__v;
+    return docObject;
+};
+
 export const DocumentSchema = mongoose.model("Document", documentSchema);
