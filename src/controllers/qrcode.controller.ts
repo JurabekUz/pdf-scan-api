@@ -78,10 +78,11 @@ class QrCodeController extends AbstractQrCodeController {
                         month: "long",
                         day: "numeric",
                     }),
-                    scannedFile: `${process.env.QR_CODE_SCAN_URL}/download/${file._id}`,
-                    byFile: document.by?.file ? `${process.env.QR_CODE_SCAN_URL}/download/${document.by.file._id}` : "#",
+                    scannedFile: `/scan/download/${file._id}`,
+                    byFile: document.by?.file ? `/scan/download/${document.by.file._id}` : "#",
                     byName: document.by?.name ?? "Noma'lum",
                 };
+                console.log(`🔗 [SCAN] Generated download link: ${doc.scannedFile}`);
                 res.render("scan", doc);
             }
         } catch (err) {
