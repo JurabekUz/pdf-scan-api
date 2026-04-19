@@ -55,7 +55,7 @@ const documentSchema = new mongoose.Schema<DocumentInterface>(
 );
 
 // populate
-documentSchema.pre("find", function () {
+documentSchema.pre(["find", "findOne"], function () {
     this.populate("type", "-is_delete -__v ");
     this.populate("scope", "-is_delete -__v ");
     this.populate("file", "-is_delete -__v ");
@@ -72,23 +72,39 @@ documentSchema.methods.toJSON = function () {
     if (document.createdAt) docObject.created_at = (document.createdAt as Date).toISOString();
     if (document.updatedAt) docObject.updated_at = (document.updatedAt as Date).toISOString();
 
-    // Populated fields ID handling
-    // Populated fields ID handling with safe spread to avoid ReadOnly errors
+    const emptyFile = { _id: "000000000000000000000000", id: "000000000000000000000000", name: "Fayl yo'q", path: "", size: 0, pageCount: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    const emptyUser = { _id: "000000000000000000000000", id: "000000000000000000000000", username: "noma'lum", name: "Noma'lum foydalanuvchi", role: "USER" };
+    const emptyCategory = { _id: "000000000000000000000000", id: "000000000000000000000000", name: "Noma'lum" };
+
+    // Populated fields ID handling with safe spread and fallbacks
     if (docObject.type && typeof docObject.type === "object" && docObject.type._id) {
         const typeIdStr = docObject.type._id.toString();
         docObject.type = { ...docObject.type, id: typeIdStr, _id: typeIdStr };
+    } else if (!docObject.type || typeof docObject.type !== "object") {
+        docObject.type = emptyCategory;
     }
+
     if (docObject.scope && typeof docObject.scope === "object" && docObject.scope._id) {
         const scopeIdStr = docObject.scope._id.toString();
         docObject.scope = { ...docObject.scope, id: scopeIdStr, _id: scopeIdStr };
+    } else if (!docObject.scope || typeof docObject.scope !== "object") {
+        docObject.scope = emptyCategory;
     }
+
     if (docObject.file && typeof docObject.file === "object" && docObject.file._id) {
         const fileIdStr = docObject.file._id.toString();
         docObject.file = { ...docObject.file, id: fileIdStr, _id: fileIdStr };
+        if (docObject.file.createdAt) docObject.file.created_at = (docObject.file.createdAt as Date).toISOString();
+        if (docObject.file.updatedAt) docObject.file.updated_at = (docObject.file.updatedAt as Date).toISOString();
+    } else if (!docObject.file || typeof docObject.file !== "object") {
+        docObject.file = emptyFile;
     }
+
     if (docObject.by && typeof docObject.by === "object" && docObject.by._id) {
         const byIdStr = docObject.by._id.toString();
         docObject.by = { ...docObject.by, id: byIdStr, _id: byIdStr };
+    } else if (!docObject.by || typeof docObject.by !== "object") {
+        docObject.by = emptyUser;
     }
 
     delete docObject.__v;
