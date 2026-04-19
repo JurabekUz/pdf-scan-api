@@ -21,24 +21,28 @@ abstract class AbstractDocumentController {
 class DocumentController extends AbstractDocumentController {
     async createDocument(req: Request, res: Response): Promise<void> {
         try {
-            const document = await DocumentSchema.create({
-                file: req.body.file,
-                type: req.body.type,
+            const documentData = {
+                ...req.body,
                 by: req.body.requestedBy.id,
                 date: Date.now(),
-                number: req.body.number,
-                value: req.body.value,
-                customerName: req.body.customerName,
-                scope: req.body.scope,
-            });
+            };
+
+            // Explicitly cast all ObjectId fields
+            if (req.body.file) documentData.file = new mongoose.Types.ObjectId(req.body.file);
+            if (req.body.type) documentData.type = new mongoose.Types.ObjectId(req.body.type);
+            if (req.body.scope) documentData.scope = new mongoose.Types.ObjectId(req.body.scope);
+            if (documentData.by) documentData.by = new mongoose.Types.ObjectId(documentData.by);
+
+            const document = await DocumentSchema.create(documentData);
             res.status(201).json({
                 ok: true,
                 data: document,
             });
-        } catch (err) {
-            res.status(500).json({
+        } catch (err: any) {
+            console.error("Document Create Error:", err);
+            res.status(400).json({
                 ok: false,
-                message: err,
+                message: err.message || err,
             });
         }
     }

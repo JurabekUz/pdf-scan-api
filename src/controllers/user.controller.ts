@@ -51,16 +51,24 @@ class UserController extends AbstractUserController {
                 role = (UserRoles as any)[role];
             }
 
-            const user = await UserSchema.create({
+            // Explicitly cast file ID if present
+            const userData = {
                 ...req.body,
                 role: role,
-            });
+            };
+
+            if (req.body.file && mongoose.Types.ObjectId.isValid(req.body.file)) {
+                userData.file = new mongoose.Types.ObjectId(req.body.file);
+            }
+
+            const user = await UserSchema.create(userData);
             res.status(201).json({
                 ok: true,
                 data: user,
             });
         } catch (error: any) {
-            res.status(500).json({
+            console.error("User Create Error:", error);
+            res.status(400).json({
                 ok: false,
                 message: error.message || error,
             });
