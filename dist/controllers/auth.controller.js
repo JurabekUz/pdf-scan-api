@@ -24,12 +24,7 @@ class AuthController extends AbstractAuthController {
                 const reqUser = req.body;
                 const currentUser = yield user_scema_1.UserSchema.findOne({
                     username: reqUser.username,
-                }, {}, {
-                    populate: {
-                        path: "file",
-                        select: "-is_delete -__v",
-                    },
-                });
+                }).populate("file", "-is_delete -__v");
                 if (!currentUser) {
                     return res.status(404).json({
                         ok: false,
@@ -59,7 +54,7 @@ class AuthController extends AbstractAuthController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const myId = (req.body.requestedBy["id"]);
-                const currentUser = yield user_scema_1.UserSchema.findById(myId);
+                const currentUser = yield user_scema_1.UserSchema.findById(myId).populate("file", "-is_delete -__v");
                 if (!currentUser) {
                     return res.status(404).json({
                         ok: false,
