@@ -38,49 +38,29 @@ userSchema.methods.toJSON = function () {
     const user = this;
     const userObject = user.toObject();
 
-    const idStr = userObject._id.toString();
-    userObject.id = idStr;
-    userObject._id = idStr;
+    // Map role from number to string name (Old logic)
+    if (typeof userObject.role === "number") {
+        userObject.role = UserRoles[userObject.role];
+    }
 
-    // Ultimate safe role strategy (Hardcoded mapping)
-    const roleMap: any = { 0: "ADMIN", 1: "DIRECTOR", 2: "USER" };
-    const roleNum = Number(userObject.role);
-    
-    userObject.role_id = roleNum;
-    userObject.role = roleMap[roleNum] || "USER";
-    userObject.role_name = roleMap[roleNum] || "USER";
-    userObject.roleName = roleMap[roleNum] || "USER";
+    // Convert ObjectId to string safely to avoid BSON errors
+    if (userObject._id) userObject._id = userObject._id.toString();
 
-    // Snake_case timestamps for Flutter (ISO string)
-    if (user.createdAt) userObject.created_at = (user.createdAt as Date).toISOString();
-    if (user.updatedAt) userObject.updated_at = (user.updatedAt as Date).toISOString();
+    const emptyFile = { _id: "000000000000000000000000", name: "Fayl biriktirilmagan", path: "", size: 0, pageCount: 0 };
 
-    if (!userObject.file) {
-        userObject.file = {
-            _id: "000000000000000000000000",
-            id: "000000000000000000000000",
-            name: "Fayl biriktirilmagan",
-            path: "",
-            size: 0,
-            pageCount: 0,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        };
-    } else if (userObject.file && typeof userObject.file === "object" && userObject.file._id) {
+    if (userObject.file && typeof userObject.file === "object" && userObject.file._id) {
         const fileIdStr = userObject.file._id.toString();
-        // Create a new object to avoid "readonly" property errors
+        // Use spread to avoid readonly issues but KEEP original _id property name
         userObject.file = {
             ...userObject.file,
-            id: fileIdStr,
-            _id: fileIdStr,
-            created_at: userObject.file.createdAt ? (userObject.file.createdAt as Date).toISOString() : undefined,
-            updated_at: userObject.file.updatedAt ? (userObject.file.updatedAt as Date).toISOString() : undefined
+            _id: fileIdStr
         };
+    } else if (!userObject.file || typeof userObject.file !== "object") {
+        userObject.file = emptyFile;
     }
 
     delete userObject.password;
     delete userObject.__v;
-
     return userObject;
 };
 export const UserSchema = mongoose.model("User", userSchema);

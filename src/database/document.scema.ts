@@ -66,43 +66,34 @@ documentSchema.methods.toJSON = function () {
     const document = this;
     const docObject = document.toObject();
 
-    docObject.id = docObject._id.toString();
+    // Ensure main _id is string for BSON safety
+    if (docObject._id) docObject._id = docObject._id.toString();
 
-    // Snake_case timestamps (ISO string)
-    if (document.createdAt) docObject.created_at = (document.createdAt as Date).toISOString();
-    if (document.updatedAt) docObject.updated_at = (document.updatedAt as Date).toISOString();
+    const emptyFile = { _id: "000000000000000000000000", name: "Fayl yo'q", path: "", size: 0, pageCount: 0 };
+    const emptyUser = { _id: "000000000000000000000000", username: "noma'lum", name: "Noma'lum foydalanuvchi", role: "USER" };
+    const emptyCategory = { _id: "000000000000000000000000", name: "Noma'lum" };
 
-    const emptyFile = { _id: "000000000000000000000000", id: "000000000000000000000000", name: "Fayl yo'q", path: "", size: 0, pageCount: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-    const emptyUser = { _id: "000000000000000000000000", id: "000000000000000000000000", username: "noma'lum", name: "Noma'lum foydalanuvchi", role: "USER" };
-    const emptyCategory = { _id: "000000000000000000000000", id: "000000000000000000000000", name: "Noma'lum" };
-
-    // Populated fields ID handling with safe spread and fallbacks
+    // Populated fields handling with safe spread - KEEPING original _id names
     if (docObject.type && typeof docObject.type === "object" && docObject.type._id) {
-        const typeIdStr = docObject.type._id.toString();
-        docObject.type = { ...docObject.type, id: typeIdStr, _id: typeIdStr };
+        docObject.type = { ...docObject.type, _id: docObject.type._id.toString() };
     } else if (!docObject.type || typeof docObject.type !== "object") {
         docObject.type = emptyCategory;
     }
 
     if (docObject.scope && typeof docObject.scope === "object" && docObject.scope._id) {
-        const scopeIdStr = docObject.scope._id.toString();
-        docObject.scope = { ...docObject.scope, id: scopeIdStr, _id: scopeIdStr };
+        docObject.scope = { ...docObject.scope, _id: docObject.scope._id.toString() };
     } else if (!docObject.scope || typeof docObject.scope !== "object") {
         docObject.scope = emptyCategory;
     }
 
     if (docObject.file && typeof docObject.file === "object" && docObject.file._id) {
-        const fileIdStr = docObject.file._id.toString();
-        docObject.file = { ...docObject.file, id: fileIdStr, _id: fileIdStr };
-        if (docObject.file.createdAt) docObject.file.created_at = (docObject.file.createdAt as Date).toISOString();
-        if (docObject.file.updatedAt) docObject.file.updated_at = (docObject.file.updatedAt as Date).toISOString();
+        docObject.file = { ...docObject.file, _id: docObject.file._id.toString() };
     } else if (!docObject.file || typeof docObject.file !== "object") {
         docObject.file = emptyFile;
     }
 
     if (docObject.by && typeof docObject.by === "object" && docObject.by._id) {
-        const byIdStr = docObject.by._id.toString();
-        docObject.by = { ...docObject.by, id: byIdStr, _id: byIdStr };
+        docObject.by = { ...docObject.by, _id: docObject.by._id.toString() };
     } else if (!docObject.by || typeof docObject.by !== "object") {
         docObject.by = emptyUser;
     }
