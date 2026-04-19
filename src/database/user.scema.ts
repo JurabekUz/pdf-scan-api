@@ -68,10 +68,14 @@ userSchema.methods.toJSON = function () {
         };
     } else if (userObject.file && typeof userObject.file === "object" && userObject.file._id) {
         const fileIdStr = userObject.file._id.toString();
-        userObject.file.id = fileIdStr;
-        userObject.file._id = fileIdStr; // MAJBURIY: _id ni ham string qilib qo'yamiz
-        if (userObject.file.createdAt) userObject.file.created_at = (userObject.file.createdAt as Date).toISOString();
-        if (userObject.file.updatedAt) userObject.file.updated_at = (userObject.file.updatedAt as Date).toISOString();
+        // Create a new object to avoid "readonly" property errors
+        userObject.file = {
+            ...userObject.file,
+            id: fileIdStr,
+            _id: fileIdStr,
+            created_at: userObject.file.createdAt ? (userObject.file.createdAt as Date).toISOString() : undefined,
+            updated_at: userObject.file.updatedAt ? (userObject.file.updatedAt as Date).toISOString() : undefined
+        };
     }
 
     delete userObject.password;
