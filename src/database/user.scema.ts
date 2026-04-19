@@ -42,16 +42,18 @@ userSchema.methods.toJSON = function () {
     userObject.id = idStr;
     userObject._id = idStr;
 
-    // Dual role strategy
+    // Ultimate safe role strategy (Hardcoded mapping)
+    const roleMap: any = { 0: "ADMIN", 1: "DIRECTOR", 2: "USER" };
     const roleNum = Number(userObject.role);
+    
     userObject.role_id = roleNum;
-    userObject.role = UserRoles[roleNum]; // Revert to original String format
-    userObject.role_name = UserRoles[roleNum];
-    userObject.roleName = UserRoles[roleNum];
+    userObject.role = roleMap[roleNum] || "USER";
+    userObject.role_name = roleMap[roleNum] || "USER";
+    userObject.roleName = roleMap[roleNum] || "USER";
 
-    // Snake_case timestamps for Flutter
-    userObject.created_at = userObject.createdAt;
-    userObject.updated_at = userObject.updatedAt;
+    // Snake_case timestamps for Flutter (ISO string)
+    if (user.createdAt) userObject.created_at = (user.createdAt as Date).toISOString();
+    if (user.updatedAt) userObject.updated_at = (user.updatedAt as Date).toISOString();
 
     if (!userObject.file) {
         userObject.file = {
@@ -61,13 +63,13 @@ userSchema.methods.toJSON = function () {
             path: "",
             size: 0,
             pageCount: 0,
-            created_at: new Date(),
-            updated_at: new Date()
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
         };
     } else if (typeof userObject.file === "object") {
         userObject.file.id = userObject.file._id ? userObject.file._id.toString() : "";
-        userObject.file.created_at = userObject.file.createdAt;
-        userObject.file.updated_at = userObject.file.updatedAt;
+        if (userObject.file.createdAt) userObject.file.created_at = userObject.file.createdAt.toISOString();
+        if (userObject.file.updatedAt) userObject.file.updated_at = userObject.file.updatedAt.toISOString();
     }
 
     delete userObject.password;
