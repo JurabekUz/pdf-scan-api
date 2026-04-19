@@ -1,0 +1,148 @@
+doctype html
+html(lang="uz")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport" content="width=device-width, initial-scale=1.0")
+        title Hujjat Tafsilotlari | Accurate Value
+        link(rel="preconnect" href="https://fonts.googleapis.com")
+        link(rel="preconnect" href="https://fonts.gstatic.com" crossorigin)
+        link(href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet")
+        style.
+            :root {
+                --primary: #007bff;
+                --success: #28a745;
+                --bg: #f4f7f9;
+                --text: #333;
+                --text-secondary: #666;
+            }
+            body {
+                font-family: 'Inter', sans-serif;
+                background-color: var(--bg);
+                margin: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                color: var(--text);
+            }
+            .container {
+                background: white;
+                padding: 40px;
+                border-radius: 20px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+                width: 100%;
+                max-width: 450px;
+                text-align: center;
+                animation: fadeIn 0.5s ease-out;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .header {
+                margin-bottom: 30px;
+            }
+            .icon {
+                width: 60px;
+                height: 60px;
+                background: #e8f5e9;
+                color: var(--success);
+                border-radius: 50%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin: 0 auto 15px;
+                font-size: 30px;
+            }
+            h1 {
+                font-size: 24px;
+                font-weight: 700;
+                margin: 0;
+                color: #1a1a1a;
+            }
+            p.subtitle {
+                color: var(--text-secondary);
+                font-size: 14px;
+                margin-top: 5px;
+            }
+            .details {
+                text-align: left;
+                background: #f8fafc;
+                padding: 20px;
+                border-radius: 12px;
+                margin-bottom: 25px;
+            }
+            .detail-item {
+                margin-bottom: 15px;
+                border-bottom: 1px solid #edf2f7;
+                padding-bottom: 8px;
+            }
+            .detail-item:last-child {
+                border-bottom: none;
+                margin-bottom: 0;
+            }
+            .label {
+                font-size: 12px;
+                color: var(--text-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                display: block;
+            }
+            .value {
+                font-size: 16px;
+                font-weight: 500;
+                color: #2d3748;
+                display: block;
+                margin-top: 2px;
+            }
+            .btn {
+                display: inline-block;
+                width: 100%;
+                padding: 14px;
+                background: var(--primary);
+                color: white;
+                text-decoration: none;
+                border-radius: 10px;
+                font-weight: 600;
+                transition: transform 0.2s, background 0.2s;
+            }
+            .btn:hover {
+                background: #0069d9;
+                transform: scale(1.02);
+            }
+            .footer {
+                margin-top: 25px;
+                font-size: 12px;
+                color: var(--text-secondary);
+            }
+    body
+        .container
+            .header
+                .icon ✓
+                h1 Hujjat Tasdiqlangan
+                p.subtitle Accurate Value avtomatlashtirilgan tizimi
+            
+            .details
+                .detail-item
+                    span.label Hujjat Raqami
+                    span.value= number
+                .detail-item
+                    span.label Mijoz Nomi
+                    span.value= customerName
+                .detail-item
+                    span.label Sanasi
+                    span.value= date
+                .detail-item
+                    span.label Umumiy Qiymat
+                    span.value= value + " so'm"
+                .detail-item
+                    span.label Sahifalar Soni
+                    span.value= pageCount
+                .detail-item
+                    span.label Mas'ul Xodim
+                    span.value= byName
+            
+            a.btn(href=scannedFile) Hujjatni yuklab olish
+            
+            .footer
+                p Ushbu hujjat Accurate Value tizimi orqali nazoratdan o'tgan.

@@ -17,54 +17,55 @@ class QrCodeController extends AbstractQrCodeController {
             const width = req.query.width
                 ? parseFloat(req.query.width.toString())
                 : 200;
+            const id = req.query.id?.toString() || v4();
             const qrStream = new PassThrough();
-            const uuid = v4();
-            const scanUrl = `${process.env.QR_CODE_SCAN_URL}/${uuid}`;
+            const scanUrl = `${process.env.QR_CODE_SCAN_URL}/${id}`;
             await QRCode.toFileStream(qrStream, scanUrl, {
                 type: "png",
                 width: width,
                 errorCorrectionLevel: "H",
             });
-            res.setHeader("x-qrcode-id", uuid);
+            res.setHeader("x-qrcode-id", id);
             res.setHeader("Content-Type", "image/png");
             res.setHeader("Content-Disposition", "attachment; filename=qr-code.png");
             qrStream.pipe(res);
         } catch (err) {
             console.error("Failed to return content", err);
+            res.status(500).send("Internal Server Error");
         }
     }
 
     async scanQrCode(req: Request, res: Response): Promise<void> {
         try {
-            const fileName = req.params.id;
-            const file = await FileSchema.findOne({
-                name: `${fileName}.pdf`,
-            });
-            const document = await DocumentSchema.findOne(
-                {
-                    file: file?.id,
-                },
-                {},
-                {
-                    populate: [
-                        {
-                            path: "by",
-                            select: "name file",
-                            populate: {
-                                path: "file",
-                                select: "_id",
-                            },
-                        },
-                    ],
-                }
-            );
-            if (!document || !file || document.is_delete || document.status.toString() != "confirmed") {
+            const id = req.params.id;
+            let file = await FileSchema.findById(id);
+            
+            if (!file) {
+                file = await FileSchema.findOne({ name: `${id}.pdf` });
+            }
+
+            if (!file) {
+                res.status(404).send("File not found");
+                return;
+            }
+
+            const document = await DocumentSchema.findOne({ file: file._id })
+                .populate({
+                    path: "by",
+                    select: "name file",
+                    populate: {
+                        path: "file",
+                        select: "_id",
+                    },
+                });
+
+            if (!document || document.is_delete || document.status.toString() !== "confirmed") {
                 res.setHeader("X-Error", "Document not found or deleted or not confirmed");
-                res.send("Document not found");
+                res.send("Hujjat topilmadi yoki tasdiqlanmagan");
             } else {
                 const doc = {
                     number: document.number,
-                    pageCount: file?.pageCount ?? "0",
+                    pageCount: file.pageCount ?? "0",
                     customerName: document.customerName,
                     value: document.value,
                     date: document.date.toLocaleDateString("uz-UZ", {
@@ -72,15 +73,15 @@ class QrCodeController extends AbstractQrCodeController {
                         month: "long",
                         day: "numeric",
                     }),
-                    scannedFile: `${process.env.QR_CODE_SCAN_URL}/download/${document.file}`,
-                    byFile: `${process.env.QR_CODE_SCAN_URL}/download/${document.by.file?._id}`,
-                    byName: document.by.name,
+                    scannedFile: `${process.env.QR_CODE_SCAN_URL}/download/${file._id}`,
+                    byFile: document.by?.file ? `${process.env.QR_CODE_SCAN_URL}/download/${document.by.file._id}` : "#",
+                    byName: document.by?.name ?? "Noma'lum",
                 };
                 res.render("scan", doc);
             }
         } catch (err) {
             res.setHeader("X-Error", "Document not found or invalid: " + err);
-            res.send("Document not found or invalid" + err);
+            res.send("Xatolik yuz berdi: " + err);
         }
     }
 }
