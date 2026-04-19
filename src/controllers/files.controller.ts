@@ -1,4 +1,5 @@
 import e, {Request, Response} from "express";
+import mongoose from "mongoose";
 import {FileSchema} from "../database/files.scema";
 import {FileInterface} from "../models/file.model";
 
@@ -110,7 +111,17 @@ class FileController extends AbstractFileController {
 
     async downloadFile(req: e.Request, res: e.Response): Promise<void> {
         try {
-            const fileData = await FileSchema.findById(req.params.id);
+            const id = req.params.id;
+            let fileData = null;
+
+            if (mongoose.Types.ObjectId.isValid(id)) {
+                fileData = await FileSchema.findById(id);
+            }
+
+            if (!fileData) {
+                fileData = await FileSchema.findOne({ name: `${id}.pdf` });
+            }
+
             if (!fileData) {
                 res.status(404).json({
                     ok: false,
