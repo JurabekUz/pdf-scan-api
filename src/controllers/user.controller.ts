@@ -1,4 +1,5 @@
 import {Request, Response} from "express";
+import mongoose from "mongoose";
 import {UserSchema} from "../database/user.scema";
 import {UserRoles} from "../models/user.model";
 import bcrypt from "bcryptjs";

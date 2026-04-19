@@ -1,4 +1,5 @@
 import {Request, Response} from "express";
+import mongoose from "mongoose";
 import {DocumentSchema} from "../database/document.scema";
 import {DocumentInterface} from "../models/document.model";
 import {UserSchema} from "../database/user.scema";
