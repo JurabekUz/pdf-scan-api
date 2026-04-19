@@ -68,9 +68,9 @@ documentSchema.methods.toJSON = function () {
 
     docObject.id = docObject._id.toString();
 
-    // Snake_case timestamps
-    docObject.created_at = docObject.createdAt;
-    docObject.updated_at = docObject.updatedAt;
+    // Snake_case timestamps (ISO string)
+    if (document.createdAt) docObject.created_at = (document.createdAt as Date).toISOString();
+    if (document.updatedAt) docObject.updated_at = (document.updatedAt as Date).toISOString();
 
     // Populated fields ID handling
     if (docObject.type && docObject.type._id) docObject.type.id = docObject.type._id.toString();
