@@ -46,8 +46,6 @@ userSchema.methods.toJSON = function () {
     // Convert ObjectId to string safely to avoid BSON errors
     if (userObject._id) userObject._id = userObject._id.toString();
 
-    const emptyFile = { _id: "000000000000000000000000", name: "Fayl biriktirilmagan", path: "", size: 0, pageCount: 0 };
-
     if (userObject.file && typeof userObject.file === "object" && userObject.file._id) {
         const fileIdStr = userObject.file._id.toString();
         // Use spread to avoid readonly issues but KEEP original _id property name
@@ -55,8 +53,6 @@ userSchema.methods.toJSON = function () {
             ...userObject.file,
             _id: fileIdStr
         };
-    } else if (!userObject.file || typeof userObject.file !== "object") {
-        userObject.file = emptyFile;
     }
 
     delete userObject.password;

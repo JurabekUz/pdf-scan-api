@@ -69,33 +69,21 @@ documentSchema.methods.toJSON = function () {
     // Ensure main _id is string for BSON safety
     if (docObject._id) docObject._id = docObject._id.toString();
 
-    const emptyFile = { _id: "000000000000000000000000", name: "Fayl yo'q", path: "", size: 0, pageCount: 0 };
-    const emptyUser = { _id: "000000000000000000000000", username: "noma'lum", name: "Noma'lum foydalanuvchi", role: "USER" };
-    const emptyCategory = { _id: "000000000000000000000000", name: "Noma'lum" };
-
-    // Populated fields handling with safe spread - KEEPING original _id names
+    // Populated fields handling with safe spread - ONLY if they exist
     if (docObject.type && typeof docObject.type === "object" && docObject.type._id) {
         docObject.type = { ...docObject.type, _id: docObject.type._id.toString() };
-    } else if (!docObject.type || typeof docObject.type !== "object") {
-        docObject.type = emptyCategory;
     }
 
     if (docObject.scope && typeof docObject.scope === "object" && docObject.scope._id) {
         docObject.scope = { ...docObject.scope, _id: docObject.scope._id.toString() };
-    } else if (!docObject.scope || typeof docObject.scope !== "object") {
-        docObject.scope = emptyCategory;
     }
 
     if (docObject.file && typeof docObject.file === "object" && docObject.file._id) {
         docObject.file = { ...docObject.file, _id: docObject.file._id.toString() };
-    } else if (!docObject.file || typeof docObject.file !== "object") {
-        docObject.file = emptyFile;
     }
 
     if (docObject.by && typeof docObject.by === "object" && docObject.by._id) {
         docObject.by = { ...docObject.by, _id: docObject.by._id.toString() };
-    } else if (!docObject.by || typeof docObject.by !== "object") {
-        docObject.by = emptyUser;
     }
 
     delete docObject.__v;
