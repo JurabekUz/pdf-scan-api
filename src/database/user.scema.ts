@@ -37,7 +37,7 @@ userSchema.pre("find", function () {
 userSchema.methods.toJSON = function () {
     const user = this;
     const userObject = user.toObject();
-    userObject.role = UserRoles[userObject.role];
+    // userObject.role = UserRoles[userObject.role]; // Removed to prevent Dart type error when indexing enum list
     delete userObject.password;
     return userObject;
 };

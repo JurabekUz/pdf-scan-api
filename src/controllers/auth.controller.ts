@@ -18,18 +18,9 @@ class AuthController extends AbstractAuthController {
     async login(req: Request, res: Response) {
         try {
             const reqUser: LoginReq = req.body;
-            const currentUser = await UserSchema.findOne(
-                {
-                    username: reqUser.username,
-                },
-                {},
-                {
-                    populate: {
-                        path: "file",
-                        select: "-is_delete -__v",
-                    },
-                }
-            );
+            const currentUser = await UserSchema.findOne({
+                username: reqUser.username,
+            }).populate("file", "-is_delete -__v");
             if (!currentUser) {
                 return res.status(404).json({
                     ok: false,
@@ -63,7 +54,7 @@ class AuthController extends AbstractAuthController {
     ) {
         try {
             const myId = (req.body.requestedBy["id"]);
-            const currentUser = await UserSchema.findById(myId);
+            const currentUser = await UserSchema.findById(myId).populate("file", "-is_delete -__v");
             if (!currentUser) {
                 return res.status(404).json({
                     ok: false,
