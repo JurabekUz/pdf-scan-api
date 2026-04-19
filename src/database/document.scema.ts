@@ -83,7 +83,18 @@ documentSchema.methods.toJSON = function () {
     }
 
     if (docObject.by && typeof docObject.by === "object" && docObject.by._id) {
-        docObject.by = { ...docObject.by, _id: docObject.by._id.toString() };
+        const byIdStr = docObject.by._id.toString();
+        // Safe mapping for role in populated User object
+        let roleName = docObject.by.role;
+        if (typeof docObject.by.role === "number") {
+            const roleMap: any = { 0: "ADMIN", 1: "DIRECTOR", 2: "USER" };
+            roleName = roleMap[docObject.by.role] || "USER";
+        }
+        docObject.by = { 
+            ...docObject.by, 
+            _id: byIdStr,
+            role: roleName 
+        };
     }
 
     delete docObject.__v;
