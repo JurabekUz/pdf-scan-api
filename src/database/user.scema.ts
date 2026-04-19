@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import {UserInterface, UserRoles} from "../models/user.model";
 
 const userSchema = new mongoose.Schema<UserInterface>(
