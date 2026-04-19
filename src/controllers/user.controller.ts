@@ -46,22 +46,37 @@ class UserController extends AbstractUserController {
 
     async createUser(req: Request, res: Response) {
         try {
+            let role = req.body.role;
+            if (typeof role === "string") {
+                role = (UserRoles as any)[role];
+            }
+
             const user = await UserSchema.create({
                 ...req.body,
-                role: UserRoles[req.body.role],
+                role: role,
             });
             res.status(201).json({
                 ok: true,
                 data: user,
             });
-        } catch (error) {
-            res.status(500).json(error);
+        } catch (error: any) {
+            res.status(500).json({
+                ok: false,
+                message: error.message || error,
+            });
         }
     }
 
     async updateUser(req: Request, res: Response) {
         try {
-            req.body.role = UserRoles[req.body.role];
+            if (req.body.role !== undefined) {
+                let role = req.body.role;
+                if (typeof role === "string") {
+                    role = (UserRoles as any)[role];
+                }
+                req.body.role = role;
+            }
+
             if (req.body.password) {
                 req.body.password = await bcrypt.hash(req.body.password, 10);
             }
@@ -72,8 +87,11 @@ class UserController extends AbstractUserController {
                 ok: true,
                 data: user,
             });
-        } catch (error) {
-            res.status(500).json(error);
+        } catch (error: any) {
+            res.status(500).json({
+                ok: false,
+                message: error.message || error,
+            });
         }
     }
 
@@ -88,8 +106,11 @@ class UserController extends AbstractUserController {
                 ok: true,
                 data: user,
             });
-        } catch (error) {
-            res.status(500).json(error);
+        } catch (error: any) {
+            res.status(500).json({
+                ok: false,
+                message: error.message || error,
+            });
         }
     }
 

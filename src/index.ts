@@ -26,6 +26,11 @@ app.set("views", "public/views");
 
 app.use((req, res, next) => {
     console.log(`📡 [${req.method}] ${req.url}`);
+    if (Object.keys(req.body).length > 0) {
+        const logBody = {...req.body};
+        if (logBody.password) logBody.password = "****"; // Xavfsizlik uchun parolni berkitamiz
+        console.log(`📦 [BODY] ${JSON.stringify(logBody)}`);
+    }
     const oldJson = res.json;
     res.json = function (data) {
         console.log(`📦 [RESPONSE] ${JSON.stringify(data)}`);
