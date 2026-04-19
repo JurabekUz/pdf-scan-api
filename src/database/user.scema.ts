@@ -37,6 +37,8 @@ userSchema.pre("find", function () {
 userSchema.methods.toJSON = function () {
     const user = this;
     const userObject = user.toObject();
+    userObject.id = userObject._id.toString();
+    userObject.roleName = UserRoles[userObject.role];
     delete userObject.password;
     return userObject;
 };
