@@ -139,10 +139,19 @@ html(lang="uz")
                     span.label Sahifalar Soni
                     span.value= pageCount
                 .detail-item
+                    span.label Hujjat Turi
+                    span.value= categoryName
+                .detail-item
+                    span.label Hujjat Qamrovi
+                    span.value= scopeName
+                .detail-item
                     span.label Mas'ul Xodim
                     span.value= byName
             
-            a.btn(href=scannedFile) Hujjatni yuklab olish
+            .actions(style="display: flex; flex-direction: column; gap: 10px;")
+                a.btn(href=scannedFile) Hujjatni yuklab olish
+                a.btn(href=byFile style="background: #6c757d;") Baholovchi imzosi
+                a.btn(href="#" style="background: #6c757d;") Direktor imzosi
             
             .footer
                 p Ushbu hujjat Accurate Value tizimi orqali nazoratdan o'tgan.

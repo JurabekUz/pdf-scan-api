@@ -78,6 +78,8 @@ class QrCodeController extends AbstractQrCodeController {
                         month: "long",
                         day: "numeric",
                     }),
+                    categoryName: (document.type as any)?.name ?? "Noma'lum",
+                    scopeName: (document.scope as any)?.name ?? "Noma'lum",
                     scannedFile: `/scan/download/${file._id}`,
                     byFile: document.by?.file ? `/scan/download/${document.by.file._id}` : "#",
                     byName: document.by?.name ?? "Noma'lum",
