@@ -5,6 +5,8 @@ import QRCode from "qrcode";
 import {v4} from "uuid";
 import {DocumentSchema} from "../database/document.scema";
 import {FileSchema} from "../database/files.scema";
+import {UserSchema} from "../database/user.scema";
+import {UserRoles} from "../models/user.model";
 
 abstract class AbstractQrCodeController {
     abstract generateQrCode(req: Request, res: Response): Promise<void>;
@@ -63,6 +65,8 @@ class QrCodeController extends AbstractQrCodeController {
                         select: "_id",
                     },
                 });
+            
+            const director = await UserSchema.findOne({ role: UserRoles.DIRECTOR });
 
             if (!document || document.is_delete || document.status.toString() !== "confirmed") {
                 res.setHeader("X-Error", "Document not found or deleted or not confirmed");
@@ -82,6 +86,7 @@ class QrCodeController extends AbstractQrCodeController {
                     scopeName: (document.scope as any)?.name ?? "Noma'lum",
                     scannedFile: `/scan/download/${file._id}`,
                     byFile: document.by?.file ? `/scan/download/${document.by.file._id}` : "#",
+                    directorFile: director?.file ? `/scan/download/${(director.file as any)._id}` : "#",
                     byName: document.by?.name ?? "Noma'lum",
                 };
                 console.log(`🔗 [SCAN] Generated download link: ${doc.scannedFile}`);
