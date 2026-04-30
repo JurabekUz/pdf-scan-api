@@ -12,16 +12,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const mongoose_1 = __importDefault(require("mongoose"));
 const user_scema_1 = require("../database/user.scema");
 const user_model_1 = require("../models/user.model");
-const bcrypt_1 = __importDefault(require("bcrypt"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 class AbstractUserController {
 }
 class UserController extends AbstractUserController {
     getUsers(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const users = yield user_scema_1.UserSchema.find({ is_delete: false }, { password: 0 } // means exclude passwordHash field
+                const users = yield user_scema_1.UserSchema.find({}, { password: 0 } // means exclude passwordHash field
                 );
                 res.status(200).json({
                     ok: true,
@@ -51,23 +52,42 @@ class UserController extends AbstractUserController {
     createUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const user = yield user_scema_1.UserSchema.create(Object.assign(Object.assign({}, req.body), { role: user_model_1.UserRoles[req.body.role] }));
+                let role = req.body.role;
+                if (typeof role === "string") {
+                    role = user_model_1.UserRoles[role];
+                }
+                // Explicitly cast file ID if present
+                const userData = Object.assign(Object.assign({}, req.body), { role: role });
+                if (req.body.file && mongoose_1.default.Types.ObjectId.isValid(req.body.file)) {
+                    userData.file = new mongoose_1.default.Types.ObjectId(req.body.file);
+                }
+                const user = yield user_scema_1.UserSchema.create(userData);
                 res.status(201).json({
                     ok: true,
                     data: user,
                 });
             }
             catch (error) {
-                res.status(500).json(error);
+                console.error("User Create Error:", error);
+                res.status(400).json({
+                    ok: false,
+                    message: error.message || error,
+                });
             }
         });
     }
     updateUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                req.body.role = user_model_1.UserRoles[req.body.role];
+                if (req.body.role !== undefined) {
+                    let role = req.body.role;
+                    if (typeof role === "string") {
+                        role = user_model_1.UserRoles[role];
+                    }
+                    req.body.role = role;
+                }
                 if (req.body.password) {
-                    req.body.password = yield bcrypt_1.default.hash(req.body.password, 10);
+                    req.body.password = yield bcryptjs_1.default.hash(req.body.password, 10);
                 }
                 const user = yield user_scema_1.UserSchema.findByIdAndUpdate(req.params.id, req.body, {
                     new: true,
@@ -78,7 +98,10 @@ class UserController extends AbstractUserController {
                 });
             }
             catch (error) {
-                res.status(500).json(error);
+                res.status(500).json({
+                    ok: false,
+                    message: error.message || error,
+                });
             }
         });
     }
@@ -92,7 +115,10 @@ class UserController extends AbstractUserController {
                 });
             }
             catch (error) {
-                res.status(500).json(error);
+                res.status(500).json({
+                    ok: false,
+                    message: error.message || error,
+                });
             }
         });
     }

@@ -8,7 +8,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const mongoose_1 = __importDefault(require("mongoose"));
 const document_scema_1 = require("../database/document.scema");
 const user_scema_1 = require("../database/user.scema");
 const user_model_1 = require("../models/user.model");
@@ -18,25 +22,27 @@ class DocumentController extends AbstractDocumentController {
     createDocument(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const document = yield document_scema_1.DocumentSchema.create({
-                    file: req.body.file,
-                    type: req.body.type,
-                    by: req.body.requestedBy.id,
-                    date: Date.now(),
-                    number: req.body.number,
-                    value: req.body.value,
-                    customerName: req.body.customerName,
-                    scope: req.body.scope,
-                });
+                const documentData = Object.assign(Object.assign({}, req.body), { by: req.body.requestedBy.id, date: Date.now() });
+                // Explicitly cast all ObjectId fields
+                if (req.body.file)
+                    documentData.file = new mongoose_1.default.Types.ObjectId(req.body.file);
+                if (req.body.type)
+                    documentData.type = new mongoose_1.default.Types.ObjectId(req.body.type);
+                if (req.body.scope)
+                    documentData.scope = new mongoose_1.default.Types.ObjectId(req.body.scope);
+                if (documentData.by)
+                    documentData.by = new mongoose_1.default.Types.ObjectId(documentData.by);
+                const document = yield document_scema_1.DocumentSchema.create(documentData);
                 res.status(201).json({
                     ok: true,
                     data: document,
                 });
             }
             catch (err) {
-                res.status(500).json({
+                console.error("Document Create Error:", err);
+                res.status(400).json({
                     ok: false,
-                    message: err,
+                    message: err.message || err,
                 });
             }
         });
@@ -68,102 +74,40 @@ class DocumentController extends AbstractDocumentController {
                 const limit = req.query.limit ? parseInt(req.query.limit.toString()) : 15;
                 const skip = (page - 1) * limit;
                 const search = req.query.search ? req.query.search.toString() : "";
-                const from = req.query.from ? (req.query.from.toString()) : null;
-                const to = req.query.to ? (req.query.to.toString()) : null;
-                // filterBy should be category, scope, or by user
+                const from = req.query.from ? req.query.from.toString() : null;
+                const to = req.query.to ? req.query.to.toString() : null;
                 const filterBy = req.query.filterBy ? req.query.filterBy.toString() : "";
-                // filterValue should be the id of the category, scope, or user
                 const filterValue = req.query.filterValue ? req.query.filterValue.toString() : "";
                 const reqById = req.body.requestedBy;
                 const user = yield user_scema_1.UserSchema.findById(reqById.id);
                 let documents;
                 let totalElements;
-                if (limit == null && (user === null || user === void 0 ? void 0 : user.role) != user_model_1.UserRoles.USER) {
-                    documents = yield document_scema_1.DocumentSchema.find();
-                    totalElements = documents.length;
+                const query = { is_delete: false };
+                if ((user === null || user === void 0 ? void 0 : user.role) !== user_model_1.UserRoles.ADMIN && (user === null || user === void 0 ? void 0 : user.role) !== user_model_1.UserRoles.DIRECTOR) {
+                    query.by = reqById.id;
                 }
-                else if (limit == null && (user === null || user === void 0 ? void 0 : user.role) == user_model_1.UserRoles.USER) {
-                    documents = yield document_scema_1.DocumentSchema.find({
-                        is_delete: false,
-                        by: reqById.id,
-                        $or: [{ customerName: { $regex: search, $options: "i" } }, { number: { $regex: search, $options: "i" } },
-                        ]
-                    });
-                    totalElements = documents.length;
+                if (search) {
+                    query.$or = [
+                        { customerName: { $regex: search, $options: "i" } },
+                        { number: { $regex: search, $options: "i" } }
+                    ];
                 }
-                else if (from && to && (user === null || user === void 0 ? void 0 : user.role) != user_model_1.UserRoles.USER) {
-                    documents = yield document_scema_1.DocumentSchema.find({
-                        is_delete: false,
-                        by: ((user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.ADMIN || (user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.DIRECTOR) ? { $exists: true } : reqById.id,
-                        createdAt: {
-                            $gte: new Date(from),
-                            $lt: new Date(to),
-                        }
-                    })
-                        .skip(skip)
-                        .limit(limit);
-                    totalElements = documents.length;
+                if (from && to) {
+                    query.createdAt = {
+                        $gte: new Date(from),
+                        $lt: new Date(to)
+                    };
                 }
-                else if (filterBy != null && filterValue != null && (user === null || user === void 0 ? void 0 : user.role) != user_model_1.UserRoles.USER) {
-                    switch (filterBy) {
-                        case "category":
-                            documents = yield document_scema_1.DocumentSchema.find({
-                                is_delete: false,
-                                by: ((user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.ADMIN || (user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.DIRECTOR) ? { $exists: true } : reqById.id,
-                                type: filterValue,
-                            })
-                                .skip(skip)
-                                .limit(limit);
-                            totalElements = documents.length;
-                            break;
-                        case "scope":
-                            documents = yield document_scema_1.DocumentSchema.find({
-                                is_delete: false,
-                                by: ((user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.ADMIN || (user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.DIRECTOR) ? { $exists: true } : reqById.id,
-                                scope: filterValue,
-                            })
-                                .skip(skip)
-                                .limit(limit);
-                            totalElements = documents.length;
-                            break;
-                        case "by":
-                            documents = yield document_scema_1.DocumentSchema.find({
-                                is_delete: false,
-                                by: filterValue,
-                            })
-                                .skip(skip)
-                                .limit(limit);
-                            totalElements = documents.length;
-                            break;
-                        default:
-                            documents = yield document_scema_1.DocumentSchema.find({
-                                is_delete: false,
-                                by: ((user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.ADMIN || (user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.DIRECTOR) ? { $exists: true } : reqById.id,
-                                $or: [{ customerName: { $regex: search, $options: "i" } }, {
-                                        number: {
-                                            $regex: search,
-                                            $options: "i"
-                                        }
-                                    },
-                                ]
-                            })
-                                .skip(skip)
-                                .limit(limit);
-                            totalElements = documents.length;
-                            break;
-                    }
+                if (filterBy && filterValue && (user === null || user === void 0 ? void 0 : user.role) !== user_model_1.UserRoles.USER) {
+                    if (filterBy === "category")
+                        query.type = filterValue;
+                    else if (filterBy === "scope")
+                        query.scope = filterValue;
+                    else if (filterBy === "by")
+                        query.by = filterValue;
                 }
-                else {
-                    documents = yield document_scema_1.DocumentSchema.find({
-                        is_delete: false,
-                        by: ((user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.ADMIN || (user === null || user === void 0 ? void 0 : user.role) === user_model_1.UserRoles.DIRECTOR) ? { $exists: true } : reqById.id,
-                        $or: [{ customerName: { $regex: search, $options: "i" } }, { number: { $regex: search, $options: "i" } },
-                        ]
-                    })
-                        .skip(skip)
-                        .limit(limit);
-                    totalElements = documents.length;
-                }
+                documents = yield document_scema_1.DocumentSchema.find(query).skip(skip).limit(limit);
+                totalElements = yield document_scema_1.DocumentSchema.countDocuments(query);
                 res.status(200).json({
                     ok: true,
                     totalElements: totalElements,

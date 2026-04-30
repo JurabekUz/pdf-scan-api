@@ -20,7 +20,7 @@ class UserController extends AbstractUserController {
     async getUsers(req: Request, res: Response) {
         try {
             const users = await UserSchema.find(
-                {is_delete: false},
+                {},
                 {password: 0} // means exclude passwordHash field
             );
             res.status(200).json({

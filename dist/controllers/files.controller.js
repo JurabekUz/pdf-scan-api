@@ -8,7 +8,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const mongoose_1 = __importDefault(require("mongoose"));
 const files_scema_1 = require("../database/files.scema");
 class AbstractFileController {
 }
@@ -111,7 +115,14 @@ class FileController extends AbstractFileController {
     downloadFile(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const fileData = yield files_scema_1.FileSchema.findById(req.params.id);
+                const id = req.params.id;
+                let fileData = null;
+                if (mongoose_1.default.Types.ObjectId.isValid(id)) {
+                    fileData = yield files_scema_1.FileSchema.findById(id);
+                }
+                if (!fileData) {
+                    fileData = yield files_scema_1.FileSchema.findOne({ name: `${id}.pdf` });
+                }
                 if (!fileData) {
                     res.status(404).json({
                         ok: false,

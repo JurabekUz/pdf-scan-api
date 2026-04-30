@@ -25,6 +25,26 @@ app.use(express_1.default.urlencoded({ extended: true }));
 app.use(express_1.default.static("public"));
 app.set("view engine", "pug");
 app.set("views", "public/views");
+app.use((req, res, next) => {
+    console.log(`📡 [${req.method}] ${req.url}`);
+    if (Object.keys(req.body).length > 0) {
+        const logBody = Object.assign({}, req.body);
+        if (logBody.password)
+            logBody.password = "****"; // Xavfsizlik uchun parolni berkitamiz
+        console.log(`📦 [BODY] ${JSON.stringify(logBody)}`);
+    }
+    const oldJson = res.json;
+    res.json = function (data) {
+        try {
+            console.log(`📦 [RESPONSE] ${JSON.stringify(data)}`);
+        }
+        catch (e) {
+            console.log(`📦 [RESPONSE] (Circular or large data)`);
+        }
+        return oldJson.apply(res, arguments);
+    };
+    next();
+});
 app.use(`/`, qrcode_router_1.default);
 app.use(`${apiRoot}/auth`, auth_router_1.default);
 app.use(jwt_util_1.default.middleware);

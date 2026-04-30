@@ -66,7 +66,7 @@ class QrCodeController extends AbstractQrCodeController {
                     },
                 });
             
-            const director = await UserSchema.findOne({ role: UserRoles.DIRECTOR });
+            const director = await UserSchema.findOne({ role: UserRoles.DIRECTOR, is_delete: false }).sort({ createdAt: -1 });
 
             if (!document || document.is_delete || document.status.toString() !== "confirmed") {
                 res.setHeader("X-Error", "Document not found or deleted or not confirmed");
@@ -82,12 +82,13 @@ class QrCodeController extends AbstractQrCodeController {
                         month: "long",
                         day: "numeric",
                     }),
-                    categoryName: (document.type as any)?.name ?? "Noma'lum",
-                    scopeName: (document.scope as any)?.name ?? "Noma'lum",
+                    categoryName: (document.type as any)?.name ?? "Nomaʼlum",
+                    scopeName: (document.scope as any)?.name ?? "Nomaʼlum",
                     scannedFile: `/scan/download/${file._id}`,
                     byFile: document.by?.file ? `/scan/download/${document.by.file._id}` : "#",
                     directorFile: director?.file ? `/scan/download/${(director.file as any)._id}` : "#",
-                    byName: document.by?.name ?? "Noma'lum",
+                    byName: document.by?.name ?? "Nomaʼlum",
+                    directorName: director?.name ?? "Nomaʼlum",
                 };
                 console.log(`🔗 [SCAN] Generated download link: ${doc.scannedFile}`);
                 res.render("scan", doc);

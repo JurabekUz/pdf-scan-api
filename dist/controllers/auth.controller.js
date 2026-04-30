@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const user_scema_1 = require("../database/user.scema");
-const bcrypt_1 = __importDefault(require("bcrypt"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jwt_util_1 = __importDefault(require("../utils/jwt.util"));
 class AbstractAuthController {
 }
@@ -74,7 +74,7 @@ class AuthController extends AbstractAuthController {
 }
 function comparePassword(password, password1) {
     try {
-        return bcrypt_1.default.compareSync(password, password1 !== null && password1 !== void 0 ? password1 : "");
+        return bcryptjs_1.default.compareSync(password, password1 !== null && password1 !== void 0 ? password1 : "");
     }
     catch (error) {
         return false;

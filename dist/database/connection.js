@@ -8,22 +8,32 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.connectDB = void 0;
-const mongodb_1 = require("mongodb");
-const url = "mongodb://admin:strongPassword@127.0.0.1:27017/pdf_scan_api"; // user + password
-const client = new mongodb_1.MongoClient(url);
-function connectDB() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            yield client.connect();
-            console.log("✅ MongoDB ga ulanish muvaffaqiyatli");
-            return client.db();
-        }
-        catch (err) {
-            console.error("MongoDB connection error:", err);
-            process.exit(1);
-        }
-    });
-}
-exports.connectDB = connectDB;
+const mongoose_1 = __importDefault(require("mongoose"));
+const user_scema_1 = require("./user.scema");
+const user_model_1 = require("../models/user.model");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+const mongoUrl = process.env.MONGO_URL || "mongodb://127.0.0.1:27017/pdf_scan_api";
+mongoose_1.default.connect(mongoUrl)
+    .then(() => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("✅ MongoDB ga ulanish muvaffaqiyatli (Mongoose)");
+    const adminExist = yield user_scema_1.UserSchema.findOne({ username: "admin" });
+    if (!adminExist) {
+        yield user_scema_1.UserSchema.create({
+            username: "admin",
+            password: process.env.ADMIN_PASSWORD || "admin123",
+            name: "Administrator",
+            role: user_model_1.UserRoles.ADMIN
+        });
+        console.log("✅ Default Admin yaratildi");
+    }
+}))
+    .catch((err) => {
+    console.error("❌ MongoDB ulanishda xatolik:", err);
+    process.exit(1);
+});
+exports.default = mongoose_1.default;

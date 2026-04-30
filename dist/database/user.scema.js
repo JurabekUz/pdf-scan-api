@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserSchema = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
-const bcrypt_1 = __importDefault(require("bcrypt"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const user_model_1 = require("../models/user.model");
 const userSchema = new mongoose_1.default.Schema({
     username: { type: String, required: true, unique: true },
@@ -32,8 +32,8 @@ userSchema.pre("save", function (next) {
         if (!user.isModified("password"))
             return next();
         try {
-            const salt = yield bcrypt_1.default.genSalt(10);
-            user.password = yield bcrypt_1.default.hash(user.password, salt);
+            const salt = yield bcryptjs_1.default.genSalt(10);
+            user.password = yield bcryptjs_1.default.hash(user.password, salt);
             return next();
         }
         catch (error) {
@@ -47,8 +47,20 @@ userSchema.pre("find", function () {
 userSchema.methods.toJSON = function () {
     const user = this;
     const userObject = user.toObject();
-    userObject.role = user_model_1.UserRoles[userObject.role];
+    // Map role from number to string name (Old logic)
+    if (typeof userObject.role === "number") {
+        userObject.role = user_model_1.UserRoles[userObject.role];
+    }
+    // Convert ObjectId to string safely to avoid BSON errors
+    if (userObject._id)
+        userObject._id = userObject._id.toString();
+    if (userObject.file && typeof userObject.file === "object" && userObject.file._id) {
+        const fileIdStr = userObject.file._id.toString();
+        // Use spread to avoid readonly issues but KEEP original _id property name
+        userObject.file = Object.assign(Object.assign({}, userObject.file), { _id: fileIdStr });
+    }
     delete userObject.password;
+    delete userObject.__v;
     return userObject;
 };
 exports.UserSchema = mongoose_1.default.model("User", userSchema);

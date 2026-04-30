@@ -65,26 +65,31 @@ documentSchema.pre(["find", "findOne"], function () {
 documentSchema.methods.toJSON = function () {
     const document = this;
     const docObject = document.toObject();
+    
+    const dummyDate = new Date().toISOString();
 
-    // Ensure main _id is string for BSON safety
     if (docObject._id) docObject._id = docObject._id.toString();
 
-    // Populated fields handling with safe spread - ONLY if they exist
     if (docObject.type && typeof docObject.type === "object" && docObject.type._id) {
         docObject.type = { ...docObject.type, _id: docObject.type._id.toString() };
+    } else {
+        docObject.type = { _id: "000000000000000000000000", name: "Nomaʼlum", createdAt: dummyDate, updatedAt: dummyDate };
     }
 
     if (docObject.scope && typeof docObject.scope === "object" && docObject.scope._id) {
         docObject.scope = { ...docObject.scope, _id: docObject.scope._id.toString() };
+    } else {
+        docObject.scope = { _id: "000000000000000000000000", name: "Nomaʼlum", createdAt: dummyDate, updatedAt: dummyDate };
     }
 
     if (docObject.file && typeof docObject.file === "object" && docObject.file._id) {
         docObject.file = { ...docObject.file, _id: docObject.file._id.toString() };
+    } else {
+        docObject.file = { _id: "000000000000000000000000", name: "O‘chirilgan fayl", path: "", size: 0, pageCount: 0, createdAt: dummyDate, updatedAt: dummyDate };
     }
 
     if (docObject.by && typeof docObject.by === "object" && docObject.by._id) {
         const byIdStr = docObject.by._id.toString();
-        // Safe mapping for role in populated User object
         let roleName = docObject.by.role;
         if (typeof docObject.by.role === "number") {
             const roleMap: any = { 0: "ADMIN", 1: "DIRECTOR", 2: "USER" };
@@ -94,6 +99,19 @@ documentSchema.methods.toJSON = function () {
             ...docObject.by, 
             _id: byIdStr,
             role: roleName 
+        };
+        if (!docObject.by.file) {
+            docObject.by.file = { _id: "000000000000000000000000", name: "", path: "", size: 0, pageCount: 0, createdAt: dummyDate, updatedAt: dummyDate };
+        }
+    } else {
+        docObject.by = { 
+            _id: "000000000000000000000000", 
+            name: "O‘chirilgan", 
+            username: "unknown", 
+            role: "USER",
+            file: { _id: "000000000000000000000000", name: "", path: "", size: 0, pageCount: 0, createdAt: dummyDate, updatedAt: dummyDate },
+            createdAt: dummyDate,
+            updatedAt: dummyDate
         };
     }
 
